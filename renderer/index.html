@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTMLPad</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <!-- 顶部毛玻璃工具栏 -->
+    <header class="toolbar" id="toolbar">
+      <!-- 视图模式分段控件 -->
+      <div class="seg-group" id="viewModeGroup" role="tablist" aria-label="View Mode">
+        <button class="seg-btn" data-view="edit" title="仅编辑 (⌘1)">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/></svg>
+        </button>
+        <button class="seg-btn active" data-view="split" title="分屏 (⌘2)">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm8.5-1v14h5.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H8.5zm-1 0H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h5.5V1z"/></svg>
+        </button>
+        <button class="seg-btn" data-view="preview" title="仅预览 (⌘3)">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8a13.133 13.133 0 0 1-1.66 2.043C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/></svg>
+        </button>
+      </div>
+
+      <div class="tb-divider"></div>
+
+      <!-- 设备分段 -->
+      <div class="seg-group" id="deviceModeGroup">
+        <button class="seg-btn" data-device="phone" title="iPhone (⌘⇧1)">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M11 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h6zM5 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H5z"/><path d="M8 14a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/></svg>
+        </button>
+        <button class="seg-btn" data-device="tablet" title="iPad (⌘⇧2)">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M11.5 0A2.5 2.5 0 0 1 14 2.5v11a2.5 2.5 0 0 1-2.5 2.5h-7A2.5 2.5 0 0 1 2 13.5v-11A2.5 2.5 0 0 1 4.5 0h7zm-7 1A1.5 1.5 0 0 0 3 2.5v11A1.5 1.5 0 0 0 4.5 15h7a1.5 1.5 0 0 0 1.5-1.5v-11A1.5 1.5 0 0 0 11.5 1h-7z"/></svg>
+        </button>
+        <button class="seg-btn active" data-device="desktop" title="桌面 (⌘⇧3)">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M0 4s0-2 2-2h12s2 0 2 2v6s0 2-2 2h-4q0 1 .25 1.5H11a.5.5 0 0 1 0 1H5a.5.5 0 0 1 0-1h.75Q6 13 6 12H2s-2 0-2-2V4zm1.398-.855a.758.758 0 0 0-.254.302A1.46 1.46 0 0 0 1 4.01V10c0 .325.078.502.145.602.07.105.17.188.302.254a1.464 1.464 0 0 0 .538.143L2.01 11H14c.325 0 .502-.078.602-.145a.758.758 0 0 0 .254-.302 1.464 1.464 0 0 0 .143-.538L15 9.99V4c0-.325-.078-.502-.145-.602a.757.757 0 0 0-.302-.254A1.46 1.46 0 0 0 13.99 3H2c-.325 0-.502.078-.602.145z"/></svg>
+        </button>
+      </div>
+
+      <div class="tb-divider"></div>
+
+      <!-- 主题选择 -->
+      <select class="theme-select" id="themeSelect" title="预览主题">
+        <!-- JS 填充 -->
+      </select>
+
+      <div class="tb-spacer"></div>
+
+      <!-- 右侧操作组 -->
+      <button class="tb-btn" id="newTabBtn" title="新建标签页 (⌘T)">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg>
+      </button>
+      <button class="tb-btn" id="openBtn" title="打开 (⌘O)">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4H2.19zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707z"/></svg>
+      </button>
+      <button class="tb-btn" id="saveBtn" title="保存 (⌘S)">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4.586a1 1 0 0 0-.293-.707L11.121 1.293A1 1 0 0 0 10.414 1H2zm10 13H4v-5h8v5zM3 2v3h9V2H3zm-1 9V6h12v5H2z"/></svg>
+      </button>
+      <div class="tb-divider"></div>
+      <button class="tb-btn" id="formatBtn" title="格式化 HTML (⌥⇧F)">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M5 4a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 5 4zM5 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 5 8zm0 4a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5z"/><circle cx="2.5" cy="4" r="1"/><circle cx="2.5" cy="8" r="1"/><circle cx="2.5" cy="12" r="1"/></svg>
+      </button>
+      <button class="tb-btn" id="copyHtmlBtn" title="复制 HTML 源码">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M5.854 4.854a.5.5 0 1 0-.708-.708l-3.5 3.5a.5.5 0 0 0 0 .708l3.5 3.5a.5.5 0 0 0 .708-.708L2.707 8l3.147-3.146zm4.292 0a.5.5 0 0 1 .708-.708l3.5 3.5a.5.5 0 0 1 0 .708l-3.5 3.5a.5.5 0 0 1-.708-.708L13.293 8l-3.147-3.146z"/></svg>
+      </button>
+      <div class="tb-menu-wrap">
+        <button class="tb-btn" id="exportBtn" title="导出">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>
+        </button>
+        <div class="tb-menu" id="exportMenu" hidden>
+          <button data-action="pdf">导出为 PDF</button>
+          <button data-action="png">导出为 PNG 长图</button>
+          <button data-action="html">导出独立 HTML</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- 标签页栏 -->
+    <div class="tab-bar" id="tabBar">
+      <div class="tab-list" id="tabList"></div>
+      <button class="tab-add" id="tabAddBtn" title="新建标签页">+</button>
+    </div>
+
+    <!-- 主区域 -->
+    <main class="workspace" data-view="split" id="workspace">
+      <div class="pane editor-pane" id="editorPane">
+        <div class="editor-host" id="editorHost"></div>
+      </div>
+      <div class="pane-divider" id="paneDivider"></div>
+      <div class="pane preview-pane" id="previewPane">
+        <div class="device-frame" id="deviceFrame" data-device="desktop">
+          <iframe id="previewFrame" sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe>
+        </div>
+      </div>
+    </main>
+
+    <!-- 底部状态条 -->
+    <footer class="statusbar">
+      <span id="filePath">未命名</span>
+      <span class="status-spacer"></span>
+      <span id="docStats">0 行 · 0 字符</span>
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">就绪</span>
+    </footer>
+  </div>
+
+  <!-- 关于弹窗 -->
+  <div class="modal-mask" id="aboutModal" hidden>
+    <div class="modal-card">
+      <h2>HTMLPad</h2>
+      <p class="modal-sub">HTML 双向编辑与阅读工具</p>
+      <ul class="modal-list">
+        <li>Monaco 编辑器 + Emmet</li>
+        <li>10 套阅读主题 · 3 种设备预览</li>
+        <li>导出 PDF / PNG 长图 / 独立 HTML</li>
+      </ul>
+      <button class="modal-close" id="aboutClose">完成</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
