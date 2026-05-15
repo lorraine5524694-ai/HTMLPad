@@ -259,10 +259,10 @@ async function formatHTML() {
   if (!tab || !state.editorInstance) return;
   try {
     const prettier = require('prettier/standalone');
-    const parserHtml = require('prettier/parser-html');
-    const formatted = prettier.format(tab.content, {
+    const pluginHtml = require('prettier/plugins/html');
+    const formatted = await prettier.format(tab.content, {
       parser: 'html',
-      plugins: [parserHtml],
+      plugins: [pluginHtml],
       printWidth: 100,
       tabWidth: 2,
       htmlWhitespaceSensitivity: 'css'

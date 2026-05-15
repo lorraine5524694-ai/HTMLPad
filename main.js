@@ -181,6 +181,14 @@ function createWindow(filePath = null) {
   windows.push(win);
   win.loadFile('renderer/index.html');
 
+  if (process.env.HTMLPAD_DEBUG) {
+    win.webContents.on('console-message', (_e, level, message, line, sourceId) => {
+      const lvl = ['LOG', 'WARN', 'ERR', 'INFO'][level] || 'LOG';
+      console.log(`[renderer:${lvl}] ${message} (${sourceId}:${line})`);
+    });
+    win.webContents.openDevTools({ mode: 'detach' });
+  }
+
   win.on('closed', () => {
     const i = windows.indexOf(win);
     if (i > -1) windows.splice(i, 1);
