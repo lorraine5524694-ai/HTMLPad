@@ -311,6 +311,12 @@ button { font-family: inherit; cursor: pointer; }
   display: flex;
   align-items: flex-start;
   justify-content: center;
+}
+.preview-pane[data-device="desktop"] {
+  padding: 0;
+}
+.preview-pane[data-device="phone"],
+.preview-pane[data-device="tablet"] {
   padding: 24px;
 }
 
@@ -326,6 +332,7 @@ button { font-family: inherit; cursor: pointer; }
   border-radius: 0;
   box-shadow: none;
   background: transparent;
+  overflow: visible;
 }
 .device-frame[data-device="phone"] {
   width: 390px;

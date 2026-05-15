@@ -152,6 +152,7 @@ function setViewMode(mode) {
 function setDeviceMode(mode) {
   state.deviceMode = mode;
   document.getElementById('deviceFrame').dataset.device = mode;
+  document.querySelector('.preview-pane').dataset.device = mode;
   document.querySelectorAll('#deviceModeGroup .seg-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.device === mode);
   });
@@ -182,7 +183,7 @@ function updatePreview() {
     const tab = state.activeTab;
     if (!tab) return;
     const iframe = document.getElementById('previewFrame');
-    window.HTMLPadPreview.setTheme(iframe, tab.content || '', getCurrentThemeCSS());
+    window.HTMLPadPreview.setPreview(iframe, tab.content || '', getCurrentThemeCSS(), tab.filePath);
   }, PREVIEW_DEBOUNCE_MS);
 }
 
@@ -428,9 +429,26 @@ async function init() {
   // 初始 tab
   newTab();
 
+  // 设置初始 device 到 preview-pane(否则没 padding 切换会错位)
+  document.querySelector('.preview-pane').dataset.device = state.deviceMode;
+
+  // 监听预览 iframe 的点击,跳转 Monaco 光标
+  window.addEventListener('message', (e) => {
+    if (e.data?.type === 'htmlpad-jump' && state.editorInstance && state.monaco) {
+      const offset = e.data.offset;
+      const model = state.editorInstance.getModel();
+      if (!model) return;
+      const pos = model.getPositionAt(offset);
+      state.editorInstance.revealLineInCenter(pos.lineNumber);
+      state.editorInstance.setPosition(pos);
+      state.editorInstance.focus();
+    }
+  });
+
   // 启动 Monaco
   const editorHost = document.getElementById('editorHost');
   try {
+    state.monaco = await window.HTMLPadEditor.loadMonaco();
     state.editorInstance = await window.HTMLPadEditor.createEditor(editorHost, state.activeTab.content, onEditorChange);
   } catch (e) {
     console.error('Monaco 加载失败,降级为 textarea:', e);
