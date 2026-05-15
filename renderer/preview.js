@@ -60,11 +60,55 @@ function ensureCharset(html) {
 
 function setDevice(deviceFrame, mode) {
   deviceFrame.dataset.device = mode;
+  const iframe = deviceFrame.querySelector('iframe');
+  if (!iframe) return;
+  if (mode === 'desktop') {
+    autoResize(iframe);
+  } else {
+    iframe.style.height = '';
+    if (iframe._htmlpadObserver) {
+      iframe._htmlpadObserver.disconnect();
+      iframe._htmlpadObserver = null;
+    }
+  }
 }
 
 function setTheme(iframe, html, themeCSS) {
+  if (iframe._htmlpadObserver) {
+    try { iframe._htmlpadObserver.disconnect(); } catch (e) {}
+    iframe._htmlpadObserver = null;
+  }
   const finalHtml = injectTheme(ensureCharset(html), themeCSS);
+  iframe.onload = () => autoResize(iframe);
   iframe.srcdoc = finalHtml;
+}
+
+function autoResize(iframe) {
+  const deviceFrame = iframe.parentElement;
+  const device = deviceFrame?.dataset.device || 'desktop';
+  if (device !== 'desktop') return;
+
+  try {
+    const doc = iframe.contentDocument;
+    if (!doc || !doc.body) return;
+    const measure = () => Math.max(
+      doc.body.scrollHeight,
+      doc.documentElement.scrollHeight,
+      doc.body.offsetHeight,
+      doc.documentElement.offsetHeight
+    );
+    iframe.style.height = measure() + 'px';
+
+    if (typeof ResizeObserver !== 'undefined' && !iframe._htmlpadObserver) {
+      const ro = new ResizeObserver(() => {
+        iframe.style.height = measure() + 'px';
+      });
+      ro.observe(doc.body);
+      iframe._htmlpadObserver = ro;
+    }
+  } catch (e) {
+    console.warn('autoResize failed:', e);
+  }
 }
 
 function getRenderedText(iframe) {

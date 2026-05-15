@@ -1,6 +1,6 @@
 {
   "name": "htmlpad",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "HTMLPad - HTML 双向编辑与阅读工具 for Mac",
   "main": "main.js",
   "scripts": {
