@@ -1,6 +1,7 @@
 // themes.js — 10 套阅读增强主题。
-// 实现策略:把这些 CSS 注入到 iframe head,通过 :root 包裹覆盖,不破坏用户 HTML。
-// 每套主题在 HTML 的 body 上添加 .htmlpad-theme-<id> class 以获得作用域。
+// 注入策略:把这些 CSS 注入到 iframe head;<html>/<body> 加 .htmlpad-theme class。
+// 选择器用 `html.htmlpad-theme body.htmlpad-theme` 取得 (0,0,2,2) 特异性,
+// 配合关键属性 !important,确保覆盖用户 HTML 的内联 <style>。
 
 const THEMES = [
   {
@@ -12,210 +13,221 @@ const THEMES = [
     id: 'reader',
     name: '阅读模式',
     css: `
-      html.htmlpad-theme { font-size: 16px; background: #FBFAF7; }
-      body.htmlpad-theme {
-        max-width: 720px;
-        margin: 0 auto;
-        padding: 60px 24px;
-        font-family: "Charter", "Iowan Old Style", "Source Serif Pro", "PingFang SC", serif;
-        font-size: 1.0625rem;
-        line-height: 1.78;
-        color: #2C2C2E;
-        background: transparent;
+      html.htmlpad-theme { font-size: 16px !important; background: #FBFAF7 !important; }
+      html.htmlpad-theme body.htmlpad-theme {
+        max-width: 720px !important;
+        margin: 0 auto !important;
+        padding: 60px 24px !important;
+        font-family: "Charter", "Iowan Old Style", "Source Serif Pro", "PingFang SC", Georgia, serif !important;
+        font-size: 1.0625rem !important;
+        line-height: 1.78 !important;
+        color: #2C2C2E !important;
+        background: transparent !important;
       }
-      body.htmlpad-theme h1, body.htmlpad-theme h2, body.htmlpad-theme h3 {
-        font-family: -apple-system, "SF Pro Display", "PingFang SC", sans-serif;
-        font-weight: 700;
-        letter-spacing: -0.02em;
-        margin: 1.6em 0 0.6em;
+      html.htmlpad-theme body.htmlpad-theme h1,
+      html.htmlpad-theme body.htmlpad-theme h2,
+      html.htmlpad-theme body.htmlpad-theme h3 {
+        font-family: -apple-system, "SF Pro Display", "PingFang SC", sans-serif !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.02em !important;
+        margin: 1.6em 0 0.6em !important;
+        color: #1D1D1F !important;
       }
-      body.htmlpad-theme h1 { font-size: 2rem; }
-      body.htmlpad-theme h2 { font-size: 1.5rem; }
-      body.htmlpad-theme p { margin: 1em 0; }
-      body.htmlpad-theme a { color: #007AFF; text-decoration: none; border-bottom: 1px solid rgba(0,122,255,.3); }
-      body.htmlpad-theme img { max-width: 100%; border-radius: 8px; }
-      body.htmlpad-theme code { font-family: "SF Mono", Menlo, monospace; background: #F0EFEA; padding: 2px 6px; border-radius: 4px; font-size: .9em; }
-      body.htmlpad-theme pre { background: #2C2C2E; color: #F2F2F7; padding: 16px; border-radius: 10px; overflow-x: auto; }
-      body.htmlpad-theme pre code { background: transparent; color: inherit; padding: 0; }
-      body.htmlpad-theme blockquote { border-left: 3px solid #C7C7CC; padding-left: 16px; color: #6E6E73; font-style: italic; }
+      html.htmlpad-theme body.htmlpad-theme h1 { font-size: 2rem !important; }
+      html.htmlpad-theme body.htmlpad-theme h2 { font-size: 1.5rem !important; }
+      html.htmlpad-theme body.htmlpad-theme p { margin: 1em 0 !important; }
+      html.htmlpad-theme body.htmlpad-theme a { color: #007AFF !important; text-decoration: none !important; border-bottom: 1px solid rgba(0,122,255,.3) !important; }
+      html.htmlpad-theme body.htmlpad-theme img { max-width: 100% !important; border-radius: 8px !important; }
+      html.htmlpad-theme body.htmlpad-theme code { font-family: "SF Mono", Menlo, monospace !important; background: #F0EFEA !important; padding: 2px 6px !important; border-radius: 4px !important; font-size: .9em !important; }
+      html.htmlpad-theme body.htmlpad-theme pre { background: #2C2C2E !important; color: #F2F2F7 !important; padding: 16px !important; border-radius: 10px !important; overflow-x: auto !important; }
+      html.htmlpad-theme body.htmlpad-theme pre code { background: transparent !important; color: inherit !important; padding: 0 !important; }
+      html.htmlpad-theme body.htmlpad-theme blockquote { border-left: 3px solid #C7C7CC !important; padding-left: 16px !important; color: #6E6E73 !important; font-style: italic !important; }
     `
   },
   {
     id: 'paper',
     name: '报纸风',
     css: `
-      html.htmlpad-theme { font-size: 15px; background: #F4EFE6; }
-      body.htmlpad-theme {
-        max-width: 820px;
-        margin: 0 auto;
-        padding: 56px 32px;
-        font-family: "Times New Roman", "Source Han Serif SC", "Noto Serif CJK SC", serif;
-        line-height: 1.85;
-        color: #1A1A1A;
-        background: transparent;
-        column-rule: 1px solid rgba(0,0,0,.1);
+      html.htmlpad-theme { font-size: 15px !important; background: #F4EFE6 !important; }
+      html.htmlpad-theme body.htmlpad-theme {
+        max-width: 820px !important;
+        margin: 0 auto !important;
+        padding: 56px 32px !important;
+        font-family: "Times New Roman", "Source Han Serif SC", "Noto Serif CJK SC", Georgia, serif !important;
+        line-height: 1.85 !important;
+        color: #1A1A1A !important;
+        background: transparent !important;
       }
-      body.htmlpad-theme h1 {
-        font-size: 2.6rem;
-        font-weight: 900;
-        text-align: center;
-        border-bottom: 3px double #1A1A1A;
-        padding-bottom: 12px;
-        margin-bottom: 28px;
-        letter-spacing: -0.01em;
+      html.htmlpad-theme body.htmlpad-theme h1 {
+        font-size: 2.6rem !important;
+        font-weight: 900 !important;
+        text-align: center !important;
+        border-bottom: 3px double #1A1A1A !important;
+        padding-bottom: 12px !important;
+        margin-bottom: 28px !important;
+        letter-spacing: -0.01em !important;
+        color: #1A1A1A !important;
       }
-      body.htmlpad-theme h2 {
-        font-size: 1.5rem;
-        font-weight: 700;
-        border-bottom: 1px solid #1A1A1A;
-        padding-bottom: 4px;
+      html.htmlpad-theme body.htmlpad-theme h2 {
+        font-size: 1.5rem !important;
+        font-weight: 700 !important;
+        border-bottom: 1px solid #1A1A1A !important;
+        padding-bottom: 4px !important;
+        color: #1A1A1A !important;
       }
-      body.htmlpad-theme p:first-of-type::first-letter {
-        font-size: 3em;
-        float: left;
-        line-height: .85;
-        padding: 6px 8px 0 0;
-        font-weight: 700;
+      html.htmlpad-theme body.htmlpad-theme p:first-of-type::first-letter {
+        font-size: 3em !important;
+        float: left !important;
+        line-height: .85 !important;
+        padding: 6px 8px 0 0 !important;
+        font-weight: 700 !important;
       }
-      body.htmlpad-theme p { text-indent: 2em; margin: 0.8em 0; text-align: justify; }
-      body.htmlpad-theme img { max-width: 100%; filter: grayscale(.2) contrast(1.05); border: 1px solid #1A1A1A; }
+      html.htmlpad-theme body.htmlpad-theme p { text-indent: 2em !important; margin: 0.8em 0 !important; text-align: justify !important; }
+      html.htmlpad-theme body.htmlpad-theme img { max-width: 100% !important; filter: grayscale(.2) contrast(1.05) !important; border: 1px solid #1A1A1A !important; }
     `
   },
   {
     id: 'notion',
     name: 'Notion 简洁',
     css: `
-      html.htmlpad-theme { font-size: 16px; background: #FFFFFF; }
-      body.htmlpad-theme {
-        max-width: 720px;
-        margin: 0 auto;
-        padding: 96px 96px 200px;
-        font-family: -apple-system, "SF Pro Text", "PingFang SC", "Inter", sans-serif;
-        font-size: 1rem;
-        line-height: 1.7;
-        color: rgba(55, 53, 47, .95);
+      html.htmlpad-theme { font-size: 16px !important; background: #FFFFFF !important; }
+      html.htmlpad-theme body.htmlpad-theme {
+        max-width: 720px !important;
+        margin: 0 auto !important;
+        padding: 96px 96px 200px !important;
+        font-family: -apple-system, "SF Pro Text", "PingFang SC", "Inter", sans-serif !important;
+        font-size: 1rem !important;
+        line-height: 1.7 !important;
+        color: rgba(55, 53, 47, .95) !important;
+        background: transparent !important;
       }
-      body.htmlpad-theme h1 { font-size: 2.25rem; font-weight: 700; letter-spacing: -0.025em; margin: .8em 0 .5em; }
-      body.htmlpad-theme h2 { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.015em; margin: 1.4em 0 .4em; }
-      body.htmlpad-theme h3 { font-size: 1.25rem; font-weight: 600; margin: 1em 0 .3em; }
-      body.htmlpad-theme p { margin: .25em 0; }
-      body.htmlpad-theme a { color: rgba(55,53,47,1); text-decoration: underline; text-decoration-color: rgba(55,53,47,.4); }
-      body.htmlpad-theme code { background: rgba(135,131,120,.15); color: #EB5757; padding: 2px 4px; border-radius: 3px; font-size: .85em; }
-      body.htmlpad-theme pre { background: #F7F6F3; padding: 16px; border-radius: 4px; }
-      body.htmlpad-theme blockquote { border-left: 3px solid currentColor; padding-left: 14px; margin: 1em 0; }
-      body.htmlpad-theme hr { border: none; height: 1px; background: rgba(55,53,47,.1); margin: 2em 0; }
+      html.htmlpad-theme body.htmlpad-theme h1 { font-size: 2.25rem !important; font-weight: 700 !important; letter-spacing: -0.025em !important; margin: .8em 0 .5em !important; color: rgb(55,53,47) !important; }
+      html.htmlpad-theme body.htmlpad-theme h2 { font-size: 1.5rem !important; font-weight: 600 !important; letter-spacing: -0.015em !important; margin: 1.4em 0 .4em !important; color: rgb(55,53,47) !important; }
+      html.htmlpad-theme body.htmlpad-theme h3 { font-size: 1.25rem !important; font-weight: 600 !important; margin: 1em 0 .3em !important; color: rgb(55,53,47) !important; }
+      html.htmlpad-theme body.htmlpad-theme p { margin: .25em 0 !important; }
+      html.htmlpad-theme body.htmlpad-theme a { color: rgba(55,53,47,1) !important; text-decoration: underline !important; text-decoration-color: rgba(55,53,47,.4) !important; }
+      html.htmlpad-theme body.htmlpad-theme code { background: rgba(135,131,120,.15) !important; color: #EB5757 !important; padding: 2px 4px !important; border-radius: 3px !important; font-size: .85em !important; }
+      html.htmlpad-theme body.htmlpad-theme pre { background: #F7F6F3 !important; padding: 16px !important; border-radius: 4px !important; }
+      html.htmlpad-theme body.htmlpad-theme blockquote { border-left: 3px solid currentColor !important; padding-left: 14px !important; margin: 1em 0 !important; }
+      html.htmlpad-theme body.htmlpad-theme hr { border: none !important; height: 1px !important; background: rgba(55,53,47,.1) !important; margin: 2em 0 !important; }
     `
   },
   {
     id: 'github',
     name: 'GitHub 文档',
     css: `
-      html.htmlpad-theme { font-size: 16px; background: #FFFFFF; }
-      body.htmlpad-theme {
-        max-width: 1012px;
-        margin: 0 auto;
-        padding: 48px 32px;
-        font-family: -apple-system, "Segoe UI", "Helvetica Neue", sans-serif;
-        font-size: 1rem;
-        line-height: 1.5;
-        color: #1F2328;
+      html.htmlpad-theme { font-size: 16px !important; background: #FFFFFF !important; }
+      html.htmlpad-theme body.htmlpad-theme {
+        max-width: 1012px !important;
+        margin: 0 auto !important;
+        padding: 48px 32px !important;
+        font-family: -apple-system, "Segoe UI", "Helvetica Neue", sans-serif !important;
+        font-size: 1rem !important;
+        line-height: 1.5 !important;
+        color: #1F2328 !important;
+        background: transparent !important;
       }
-      body.htmlpad-theme h1, body.htmlpad-theme h2 { border-bottom: 1px solid #D1D9E0; padding-bottom: .3em; }
-      body.htmlpad-theme h1 { font-size: 2em; font-weight: 600; }
-      body.htmlpad-theme h2 { font-size: 1.5em; font-weight: 600; }
-      body.htmlpad-theme a { color: #0969DA; text-decoration: none; }
-      body.htmlpad-theme a:hover { text-decoration: underline; }
-      body.htmlpad-theme code { background: rgba(175,184,193,.2); padding: .2em .4em; border-radius: 6px; font-family: "SF Mono", Menlo, monospace; font-size: 85%; }
-      body.htmlpad-theme pre { background: #F6F8FA; padding: 16px; border-radius: 6px; overflow-x: auto; }
-      body.htmlpad-theme pre code { background: transparent; padding: 0; }
-      body.htmlpad-theme blockquote { border-left: 4px solid #D1D9E0; color: #59636E; padding: 0 1em; }
-      body.htmlpad-theme table { border-collapse: collapse; }
-      body.htmlpad-theme th, body.htmlpad-theme td { border: 1px solid #D1D9E0; padding: 6px 13px; }
-      body.htmlpad-theme th { background: #F6F8FA; font-weight: 600; }
+      html.htmlpad-theme body.htmlpad-theme h1, html.htmlpad-theme body.htmlpad-theme h2 { border-bottom: 1px solid #D1D9E0 !important; padding-bottom: .3em !important; color: #1F2328 !important; }
+      html.htmlpad-theme body.htmlpad-theme h1 { font-size: 2em !important; font-weight: 600 !important; }
+      html.htmlpad-theme body.htmlpad-theme h2 { font-size: 1.5em !important; font-weight: 600 !important; }
+      html.htmlpad-theme body.htmlpad-theme a { color: #0969DA !important; text-decoration: none !important; }
+      html.htmlpad-theme body.htmlpad-theme a:hover { text-decoration: underline !important; }
+      html.htmlpad-theme body.htmlpad-theme code { background: rgba(175,184,193,.2) !important; padding: .2em .4em !important; border-radius: 6px !important; font-family: "SF Mono", Menlo, monospace !important; font-size: 85% !important; color: #1F2328 !important; }
+      html.htmlpad-theme body.htmlpad-theme pre { background: #F6F8FA !important; padding: 16px !important; border-radius: 6px !important; overflow-x: auto !important; }
+      html.htmlpad-theme body.htmlpad-theme pre code { background: transparent !important; padding: 0 !important; }
+      html.htmlpad-theme body.htmlpad-theme blockquote { border-left: 4px solid #D1D9E0 !important; color: #59636E !important; padding: 0 1em !important; }
+      html.htmlpad-theme body.htmlpad-theme table { border-collapse: collapse !important; }
+      html.htmlpad-theme body.htmlpad-theme th, html.htmlpad-theme body.htmlpad-theme td { border: 1px solid #D1D9E0 !important; padding: 6px 13px !important; }
+      html.htmlpad-theme body.htmlpad-theme th { background: #F6F8FA !important; font-weight: 600 !important; }
     `
   },
   {
     id: 'apple',
     name: 'Apple 文档',
     css: `
-      html.htmlpad-theme { font-size: 17px; background: #FFFFFF; }
-      body.htmlpad-theme {
-        max-width: 1024px;
-        margin: 0 auto;
-        padding: 80px 40px;
-        font-family: -apple-system, "SF Pro Display", "SF Pro Text", "PingFang SC", sans-serif;
-        line-height: 1.5;
-        color: #1D1D1F;
-        letter-spacing: -0.003em;
+      html.htmlpad-theme { font-size: 17px !important; background: #FFFFFF !important; }
+      html.htmlpad-theme body.htmlpad-theme {
+        max-width: 1024px !important;
+        margin: 0 auto !important;
+        padding: 80px 40px !important;
+        font-family: -apple-system, "SF Pro Display", "SF Pro Text", "PingFang SC", sans-serif !important;
+        line-height: 1.5 !important;
+        color: #1D1D1F !important;
+        letter-spacing: -0.003em !important;
+        background: transparent !important;
       }
-      body.htmlpad-theme h1 {
-        font-size: 48px;
-        font-weight: 700;
-        letter-spacing: -0.025em;
-        line-height: 1.08;
-        margin: .8em 0 .4em;
+      html.htmlpad-theme body.htmlpad-theme h1 {
+        font-size: 48px !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.025em !important;
+        line-height: 1.08 !important;
+        margin: .8em 0 .4em !important;
+        color: #1D1D1F !important;
       }
-      body.htmlpad-theme h2 { font-size: 32px; font-weight: 600; letter-spacing: -0.02em; }
-      body.htmlpad-theme h3 { font-size: 24px; font-weight: 600; }
-      body.htmlpad-theme p { font-size: 17px; line-height: 1.47; color: #424245; margin: 1em 0; }
-      body.htmlpad-theme a { color: #0066CC; text-decoration: none; }
-      body.htmlpad-theme a:hover { text-decoration: underline; }
-      body.htmlpad-theme code { font-family: "SF Mono", Menlo, monospace; background: #F5F5F7; padding: 2px 6px; border-radius: 4px; }
-      body.htmlpad-theme pre { background: #1D1D1F; color: #F5F5F7; padding: 20px; border-radius: 12px; }
-      body.htmlpad-theme pre code { background: transparent; color: inherit; }
+      html.htmlpad-theme body.htmlpad-theme h2 { font-size: 32px !important; font-weight: 600 !important; letter-spacing: -0.02em !important; color: #1D1D1F !important; }
+      html.htmlpad-theme body.htmlpad-theme h3 { font-size: 24px !important; font-weight: 600 !important; color: #1D1D1F !important; }
+      html.htmlpad-theme body.htmlpad-theme p { font-size: 17px !important; line-height: 1.47 !important; color: #424245 !important; margin: 1em 0 !important; }
+      html.htmlpad-theme body.htmlpad-theme a { color: #0066CC !important; text-decoration: none !important; }
+      html.htmlpad-theme body.htmlpad-theme a:hover { text-decoration: underline !important; }
+      html.htmlpad-theme body.htmlpad-theme code { font-family: "SF Mono", Menlo, monospace !important; background: #F5F5F7 !important; padding: 2px 6px !important; border-radius: 4px !important; color: #1D1D1F !important; }
+      html.htmlpad-theme body.htmlpad-theme pre { background: #1D1D1F !important; color: #F5F5F7 !important; padding: 20px !important; border-radius: 12px !important; }
+      html.htmlpad-theme body.htmlpad-theme pre code { background: transparent !important; color: inherit !important; }
     `
   },
   {
     id: 'magazine',
     name: '杂志风',
     css: `
-      html.htmlpad-theme { font-size: 16px; background: #FAF8F5; }
-      body.htmlpad-theme {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 80px 40px;
-        font-family: "Cormorant Garamond", "Source Han Serif SC", Georgia, serif;
-        line-height: 1.75;
-        color: #2A2A2A;
+      html.htmlpad-theme { font-size: 16px !important; background: #FAF8F5 !important; }
+      html.htmlpad-theme body.htmlpad-theme {
+        max-width: 800px !important;
+        margin: 0 auto !important;
+        padding: 80px 40px !important;
+        font-family: "Cormorant Garamond", "Source Han Serif SC", Georgia, serif !important;
+        line-height: 1.75 !important;
+        color: #2A2A2A !important;
+        background: transparent !important;
       }
-      body.htmlpad-theme h1 {
-        font-size: 4rem;
-        font-weight: 300;
-        line-height: 1.05;
-        letter-spacing: -0.03em;
-        text-align: center;
-        margin: 0 0 .3em;
+      html.htmlpad-theme body.htmlpad-theme h1 {
+        font-size: 4rem !important;
+        font-weight: 300 !important;
+        line-height: 1.05 !important;
+        letter-spacing: -0.03em !important;
+        text-align: center !important;
+        margin: 0 0 .3em !important;
+        color: #2A2A2A !important;
       }
-      body.htmlpad-theme h2 {
-        font-size: 2rem;
-        font-weight: 400;
-        font-style: italic;
-        text-align: center;
-        margin-bottom: 1em;
-        color: #8B7355;
+      html.htmlpad-theme body.htmlpad-theme h2 {
+        font-size: 2rem !important;
+        font-weight: 400 !important;
+        font-style: italic !important;
+        text-align: center !important;
+        margin-bottom: 1em !important;
+        color: #8B7355 !important;
       }
-      body.htmlpad-theme h1 + p, body.htmlpad-theme h2 + p {
-        text-align: center;
-        font-style: italic;
-        color: #6E6E73;
-        font-size: 1.1rem;
+      html.htmlpad-theme body.htmlpad-theme h1 + p,
+      html.htmlpad-theme body.htmlpad-theme h2 + p {
+        text-align: center !important;
+        font-style: italic !important;
+        color: #6E6E73 !important;
+        font-size: 1.1rem !important;
       }
-      body.htmlpad-theme p { font-size: 1.05rem; }
-      body.htmlpad-theme p:first-of-type::first-letter {
-        font-size: 5em;
-        float: left;
-        line-height: .8;
-        padding: 8px 12px 0 0;
-        font-weight: 400;
-        color: #8B7355;
+      html.htmlpad-theme body.htmlpad-theme p { font-size: 1.05rem !important; }
+      html.htmlpad-theme body.htmlpad-theme p:first-of-type::first-letter {
+        font-size: 5em !important;
+        float: left !important;
+        line-height: .8 !important;
+        padding: 8px 12px 0 0 !important;
+        font-weight: 400 !important;
+        color: #8B7355 !important;
       }
-      body.htmlpad-theme blockquote {
-        font-size: 1.5rem;
-        font-style: italic;
-        text-align: center;
-        border: none;
-        margin: 2em 0;
-        color: #8B7355;
+      html.htmlpad-theme body.htmlpad-theme blockquote {
+        font-size: 1.5rem !important;
+        font-style: italic !important;
+        text-align: center !important;
+        border: none !important;
+        margin: 2em 0 !important;
+        color: #8B7355 !important;
       }
     `
   },
@@ -223,79 +235,84 @@ const THEMES = [
     id: 'terminal',
     name: '终端绿屏',
     css: `
-      html.htmlpad-theme { background: #0A0E14; }
-      body.htmlpad-theme {
-        max-width: 900px;
-        margin: 0 auto;
-        padding: 40px;
-        font-family: "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, monospace;
-        font-size: 14px;
-        line-height: 1.7;
-        color: #5DD78B;
-        background: transparent;
+      html.htmlpad-theme { background: #0A0E14 !important; }
+      html.htmlpad-theme body.htmlpad-theme {
+        max-width: 900px !important;
+        margin: 0 auto !important;
+        padding: 40px !important;
+        font-family: "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, monospace !important;
+        font-size: 14px !important;
+        line-height: 1.7 !important;
+        color: #5DD78B !important;
+        background: transparent !important;
       }
-      body.htmlpad-theme::before {
-        content: "$ render --theme=terminal\\A";
-        white-space: pre;
-        color: #8E8E93;
-        display: block;
-        margin-bottom: 20px;
+      html.htmlpad-theme body.htmlpad-theme::before {
+        content: "$ render --theme=terminal\\A" !important;
+        white-space: pre !important;
+        color: #8E8E93 !important;
+        display: block !important;
+        margin-bottom: 20px !important;
       }
-      body.htmlpad-theme h1, body.htmlpad-theme h2, body.htmlpad-theme h3 { color: #6BE0FF; font-weight: 700; }
-      body.htmlpad-theme h1::before { content: "## "; opacity: .5; }
-      body.htmlpad-theme h2::before { content: "### "; opacity: .5; }
-      body.htmlpad-theme a { color: #FFD60A; text-decoration: underline; }
-      body.htmlpad-theme code { color: #FF7AB6; background: rgba(255,255,255,.05); padding: 1px 5px; border-radius: 3px; }
-      body.htmlpad-theme pre { background: rgba(255,255,255,.04); padding: 16px; border-left: 3px solid #5DD78B; border-radius: 0 4px 4px 0; }
-      body.htmlpad-theme blockquote { border-left: 3px solid #FFD60A; color: #FFD60A; padding-left: 12px; }
+      html.htmlpad-theme body.htmlpad-theme h1,
+      html.htmlpad-theme body.htmlpad-theme h2,
+      html.htmlpad-theme body.htmlpad-theme h3 { color: #6BE0FF !important; font-weight: 700 !important; }
+      html.htmlpad-theme body.htmlpad-theme h1::before { content: "## " !important; opacity: .5 !important; }
+      html.htmlpad-theme body.htmlpad-theme h2::before { content: "### " !important; opacity: .5 !important; }
+      html.htmlpad-theme body.htmlpad-theme a { color: #FFD60A !important; text-decoration: underline !important; }
+      html.htmlpad-theme body.htmlpad-theme code { color: #FF7AB6 !important; background: rgba(255,255,255,.05) !important; padding: 1px 5px !important; border-radius: 3px !important; }
+      html.htmlpad-theme body.htmlpad-theme pre { background: rgba(255,255,255,.04) !important; padding: 16px !important; border-left: 3px solid #5DD78B !important; border-radius: 0 4px 4px 0 !important; }
+      html.htmlpad-theme body.htmlpad-theme blockquote { border-left: 3px solid #FFD60A !important; color: #FFD60A !important; padding-left: 12px !important; }
     `
   },
   {
     id: 'print',
     name: '打印优化',
     css: `
-      html.htmlpad-theme { background: white; font-size: 12pt; }
-      body.htmlpad-theme {
-        max-width: 21cm;
-        margin: 0 auto;
-        padding: 2.5cm 2cm;
-        font-family: "Times New Roman", "Source Han Serif SC", serif;
-        line-height: 1.6;
-        color: black;
-        background: white;
+      html.htmlpad-theme { background: white !important; font-size: 12pt !important; }
+      html.htmlpad-theme body.htmlpad-theme {
+        max-width: 21cm !important;
+        margin: 0 auto !important;
+        padding: 2.5cm 2cm !important;
+        font-family: "Times New Roman", "Source Han Serif SC", Georgia, serif !important;
+        line-height: 1.6 !important;
+        color: black !important;
+        background: white !important;
       }
-      body.htmlpad-theme h1 { font-size: 22pt; text-align: center; margin-bottom: 16pt; }
-      body.htmlpad-theme h2 { font-size: 16pt; }
-      body.htmlpad-theme h3 { font-size: 13pt; }
-      body.htmlpad-theme p { margin: 8pt 0; text-align: justify; }
-      body.htmlpad-theme a { color: black; text-decoration: underline; }
-      body.htmlpad-theme img { max-width: 100%; }
-      body.htmlpad-theme pre, body.htmlpad-theme code { font-family: "Courier New", monospace; font-size: 10pt; }
-      body.htmlpad-theme pre { border: 1px solid #888; padding: 8pt; background: #F8F8F8; }
+      html.htmlpad-theme body.htmlpad-theme h1 { font-size: 22pt !important; text-align: center !important; margin-bottom: 16pt !important; color: black !important; }
+      html.htmlpad-theme body.htmlpad-theme h2 { font-size: 16pt !important; color: black !important; }
+      html.htmlpad-theme body.htmlpad-theme h3 { font-size: 13pt !important; color: black !important; }
+      html.htmlpad-theme body.htmlpad-theme p { margin: 8pt 0 !important; text-align: justify !important; }
+      html.htmlpad-theme body.htmlpad-theme a { color: black !important; text-decoration: underline !important; }
+      html.htmlpad-theme body.htmlpad-theme img { max-width: 100% !important; }
+      html.htmlpad-theme body.htmlpad-theme pre,
+      html.htmlpad-theme body.htmlpad-theme code { font-family: "Courier New", monospace !important; font-size: 10pt !important; }
+      html.htmlpad-theme body.htmlpad-theme pre { border: 1px solid #888 !important; padding: 8pt !important; background: #F8F8F8 !important; }
     `
   },
   {
     id: 'sepia',
     name: '护眼米色',
     css: `
-      html.htmlpad-theme { background: #F4ECD8; }
-      body.htmlpad-theme {
-        max-width: 720px;
-        margin: 0 auto;
-        padding: 56px 32px;
-        font-family: "Georgia", "Source Han Serif SC", "PingFang SC", serif;
-        font-size: 17px;
-        line-height: 1.8;
-        color: #5B4636;
-        background: transparent;
+      html.htmlpad-theme { background: #F4ECD8 !important; }
+      html.htmlpad-theme body.htmlpad-theme {
+        max-width: 720px !important;
+        margin: 0 auto !important;
+        padding: 56px 32px !important;
+        font-family: "Georgia", "Source Han Serif SC", "PingFang SC", serif !important;
+        font-size: 17px !important;
+        line-height: 1.8 !important;
+        color: #5B4636 !important;
+        background: transparent !important;
       }
-      body.htmlpad-theme h1, body.htmlpad-theme h2, body.htmlpad-theme h3 { color: #3E2C1C; font-weight: 700; }
-      body.htmlpad-theme h1 { font-size: 2em; margin: 1em 0 .5em; }
-      body.htmlpad-theme h2 { font-size: 1.5em; }
-      body.htmlpad-theme a { color: #8B4513; text-decoration: underline; text-decoration-color: rgba(139,69,19,.4); }
-      body.htmlpad-theme code { background: rgba(139,69,19,.1); color: #5B4636; padding: 2px 5px; border-radius: 3px; font-family: "SF Mono", monospace; }
-      body.htmlpad-theme pre { background: #EDE0C8; padding: 16px; border-radius: 6px; border-left: 3px solid #8B4513; }
-      body.htmlpad-theme blockquote { border-left: 3px solid #8B4513; color: #6B5440; padding-left: 16px; font-style: italic; }
+      html.htmlpad-theme body.htmlpad-theme h1,
+      html.htmlpad-theme body.htmlpad-theme h2,
+      html.htmlpad-theme body.htmlpad-theme h3 { color: #3E2C1C !important; font-weight: 700 !important; }
+      html.htmlpad-theme body.htmlpad-theme h1 { font-size: 2em !important; margin: 1em 0 .5em !important; }
+      html.htmlpad-theme body.htmlpad-theme h2 { font-size: 1.5em !important; }
+      html.htmlpad-theme body.htmlpad-theme a { color: #8B4513 !important; text-decoration: underline !important; text-decoration-color: rgba(139,69,19,.4) !important; }
+      html.htmlpad-theme body.htmlpad-theme code { background: rgba(139,69,19,.1) !important; color: #5B4636 !important; padding: 2px 5px !important; border-radius: 3px !important; font-family: "SF Mono", monospace !important; }
+      html.htmlpad-theme body.htmlpad-theme pre { background: #EDE0C8 !important; padding: 16px !important; border-radius: 6px !important; border-left: 3px solid #8B4513 !important; }
+      html.htmlpad-theme body.htmlpad-theme blockquote { border-left: 3px solid #8B4513 !important; color: #6B5440 !important; padding-left: 16px !important; font-style: italic !important; }
     `
   }
 ];

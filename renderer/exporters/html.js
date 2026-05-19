@@ -2,7 +2,9 @@
 
 async function exportHTML(state, ipcRenderer, themeCSS) {
   const sourceHtml = state.activeTab?.content || '';
-  const finalHtml = window.HTMLPadPreview.injectTheme(sourceHtml, themeCSS);
+  const finalHtml = (typeof window.HTMLPadBuildExportHTML === 'function')
+    ? window.HTMLPadBuildExportHTML(sourceHtml, themeCSS)
+    : sourceHtml;
 
   const defaultName = (state.activeTab?.filePath?.split('/').pop() || 'untitled.html');
   const result = await ipcRenderer.invoke('export-text', {

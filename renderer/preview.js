@@ -88,24 +88,182 @@ function injectSourceMap(html) {
 function injectBaseAndTheme(html, themeCSS, baseHref) {
   const baseTag = baseHref ? `<base href="${escapeAttr(baseHref)}">` : '';
   const styleTag = themeCSS ? `<style data-htmlpad-theme>${themeCSS}</style>` : '';
-  // 注入用于双向定位的客户端脚本
+  // 注入用于双向定位的客户端脚本:单击锁定区块 + 跳转编辑器,双击编辑纯文本
   const bridgeScript = `<script data-htmlpad-bridge>
 (function(){
-  document.addEventListener('click', function(e) {
+  var STYLE_ID = '__htmlpad_bridge_style__';
+  if (!document.getElementById(STYLE_ID)) {
+    var st = document.createElement('style');
+    st.id = STYLE_ID;
+    st.textContent =
+      '[data-htmlpad-locked]{outline:2px solid #007AFF !important;outline-offset:2px !important;border-radius:2px;}'+
+      '[data-htmlpad-editing]{outline:2px dashed #FF9F0A !important;outline-offset:2px !important;background:rgba(255,159,10,.06) !important;cursor:text !important;}'+
+      '[data-htmlpad-id]{cursor:pointer;}';
+    (document.head || document.documentElement).appendChild(st);
+  }
+
+  var locked = null;
+  var clickTimer = null;
+  var DBLCLICK_GUARD_MS = 240;
+  var sourceSelectHighlight = null;
+
+  // 监听主窗口发来的"左侧编辑器选中了某 offset"
+  window.addEventListener('message', function(e) {
+    if (!e.data || e.data.type !== 'htmlpad-source-select') return;
+    var offset = e.data.offset;
+    window.__htmlpadLastSourceSelect = offset;
+    if (!offset && offset !== 0) { clearSourceSelect(); return; }
+    applySourceSelect(offset);
+  });
+
+  function clearSourceSelect() {
+    if (sourceSelectHighlight) {
+      sourceSelectHighlight.style.outline = '';
+      sourceSelectHighlight.style.outlineOffset = '';
+      sourceSelectHighlight = null;
+    }
+  }
+
+  function applySourceSelect(offset) {
+    if (sourceSelectHighlight) {
+      sourceSelectHighlight.style.outline = '';
+      sourceSelectHighlight.style.outlineOffset = '';
+      sourceSelectHighlight = null;
+    }
+    if (!document.body) return;
+    var all = document.querySelectorAll('[data-htmlpad-id]');
+    var found = null;
+    var best = null;
+    // 精确匹配 first,否则找包含 offset 的最近父标签
+    for (var i = 0; i < all.length; i++) {
+      var el = all[i];
+      var id = parseInt(el.getAttribute('data-htmlpad-id'), 10);
+      if (id === offset) { found = el; break; }
+      if (offset >= id && (!best || id > best)) best = el;
+    }
+    if (!found) found = best;
+    if (!found) {
+      try { window.parent.postMessage({ type: 'htmlpad-debug', msg: 'no element for offset ' + offset + ' (total ids:' + all.length + ')' }, '*'); } catch(_){}
+      return;
+    }
+    sourceSelectHighlight = found;
+    found.style.outline = '2px solid #FF9F0A';
+    found.style.outlineOffset = '2px';
+    try { found.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch(_) {}
+  }
+
+  function findTarget(e) {
     var el = e.target;
     while (el && el !== document.documentElement) {
       var id = el.getAttribute && el.getAttribute('data-htmlpad-id');
-      if (id) {
-        try { window.parent.postMessage({ type: 'htmlpad-jump', offset: parseInt(id, 10) }, '*'); } catch(_){}
-        // 高亮一下
-        var prev = el.style.outline;
-        el.style.outline = '2px solid #007AFF';
-        el.style.outlineOffset = '2px';
-        setTimeout(function(){ el.style.outline = prev || ''; el.style.outlineOffset=''; }, 600);
-        return;
-      }
+      if (id) return { el: el, id: parseInt(id, 10) };
       el = el.parentElement;
     }
+    return null;
+  }
+  function setLock(el) {
+    if (locked === el) return;
+    if (locked) locked.removeAttribute('data-htmlpad-locked');
+    el.setAttribute('data-htmlpad-locked', '1');
+    locked = el;
+  }
+  function clearLock() {
+    if (locked) locked.removeAttribute('data-htmlpad-locked');
+    locked = null;
+  }
+  function onlyTextChildren(el) {
+    if (!el.childNodes.length) return true;
+    for (var i = 0; i < el.childNodes.length; i++) {
+      if (el.childNodes[i].nodeType !== 3) return false;
+    }
+    return true;
+  }
+
+  document.addEventListener('click', function(e) {
+    var t = findTarget(e);
+    if (t && t.el.getAttribute('data-htmlpad-editing')) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; }
+    // 延迟执行,留出 dblclick 抢断窗口
+    clickTimer = setTimeout(function() {
+      clickTimer = null;
+      if (t) {
+        setLock(t.el);
+        try { window.parent.postMessage({ type: 'htmlpad-jump', offset: t.id }, '*'); } catch(_){}
+      } else {
+        clearLock();
+      }
+    }, DBLCLICK_GUARD_MS);
+  }, true);
+
+  document.addEventListener('dblclick', function(e) {
+    if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; }
+    var t = findTarget(e);
+    if (!t) return;
+    if (t.el.getAttribute('data-htmlpad-editing')) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (locked === t.el) clearLock();
+    try { window.parent.postMessage({ type: 'htmlpad-edit-begin' }, '*'); } catch(_){}
+
+    var el = t.el;
+    var originalText = el.textContent;
+    el.setAttribute('data-htmlpad-editing', '1');
+    el.setAttribute('contenteditable', 'plaintext-only');
+    if (el.contentEditable === 'inherit' || el.contentEditable === 'false') {
+      el.setAttribute('contenteditable', 'true');
+    }
+    // 编辑模式下让子元素也可以编辑
+    try {
+      el.querySelectorAll('[contenteditable]').forEach(function(child) {
+        child.setAttribute('contenteditable', 'true');
+      });
+    } catch(_){}
+
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        try { window.focus(); } catch(_){}
+        try { el.focus({ preventScroll: false }); } catch(_) { try { el.focus(); } catch(__){} }
+        try {
+          var range = document.createRange();
+          range.selectNodeContents(el);
+          var sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        } catch(_){}
+      });
+    });
+
+    var done = false;
+    function finish(commit) {
+      if (done) return; done = true;
+      el.removeEventListener('blur', onBlur, true);
+      el.removeEventListener('keydown', onKey, true);
+      el.removeAttribute('contenteditable');
+      el.removeAttribute('data-htmlpad-editing');
+      try {
+        el.querySelectorAll('[contenteditable]').forEach(function(child) {
+          child.removeAttribute('contenteditable');
+        });
+      } catch(_){}
+      var newText = el.textContent;
+      if (!commit) {
+        el.textContent = originalText;
+        return;
+      }
+      if (newText !== originalText) {
+        try { window.parent.postMessage({ type: 'htmlpad-text-edit', offset: t.id, newText: newText }, '*'); } catch(_){}
+      }
+    }
+    function onBlur() { finish(true); }
+    function onKey(ev) {
+      if (ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); el.blur(); }
+      else if (ev.key === 'Escape') { ev.preventDefault(); finish(false); }
+    }
+    el.addEventListener('blur', onBlur, true);
+    el.addEventListener('keydown', onKey, true);
   }, true);
 })();
 <\/script>`;
@@ -192,7 +350,21 @@ function setPreview(iframe, html, themeCSS, filePath) {
   const baseHref = filePath ? toFileUrl(dirOf(filePath)) + '/' : '';
   const mappedHtml = injectSourceMap(ensureCharset(html));
   const finalHtml = injectBaseAndTheme(mappedHtml, themeCSS, baseHref);
-  iframe.onload = () => autoResize(iframe);
+  // 把当前选区 offset 写到 window 属性,iframe load 后 bridge 会读取并应用高亮
+  const savedOffset = window.__htmlpadLastSourceSelect;
+  iframe.onload = () => {
+    autoResize(iframe);
+    // iframe 加载完成后通知应用上次的选区高亮
+    if (savedOffset >= 0) {
+      setTimeout(() => {
+        try {
+          iframe.contentWindow.postMessage(
+            { type: 'htmlpad-source-select', offset: savedOffset }, '*'
+          );
+        } catch (_) {}
+      }, 60);
+    }
+  };
   iframe.srcdoc = finalHtml;
 }
 
@@ -252,15 +424,13 @@ function getRenderedDOM(iframe) {
   }
 }
 
-// 老 API 兼容:setTheme(iframe, html, themeCSS) → 等价于无 filePath 调用
-function setTheme(iframe, html, themeCSS) {
-  setPreview(iframe, html, themeCSS, null);
-}
+// 老 API 兼容(已删除):原先的 setTheme(iframe, html, themeCSS) 会与 app.js
+// 中的 setTheme(themeId) 函数声明在全局作用域冲突(都会绑到 window.setTheme),
+// 导致主题切换走错路径。直接通过 window.HTMLPadPreview.setPreview 调用即可。
 
 window.HTMLPadPreview = {
   injectBaseAndTheme,
   setDevice,
-  setTheme,
   setPreview,
   getRenderedText,
   getRenderedDOM,

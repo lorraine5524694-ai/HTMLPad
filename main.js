@@ -186,6 +186,8 @@ function createWindow(filePath = null) {
       const lvl = ['LOG', 'WARN', 'ERR', 'INFO'][level] || 'LOG';
       console.log(`[renderer:${lvl}] ${message} (${sourceId}:${line})`);
     });
+  }
+  if (process.env.HTMLPAD_DEVTOOLS) {
     win.webContents.openDevTools({ mode: 'detach' });
   }
 
@@ -270,7 +272,7 @@ ipcMain.handle('open-file-dialog', async (e) => {
 ipcMain.handle('get-last-file', () => store.get('lastOpenedFile'));
 ipcMain.handle('get-language', () => currentLanguage);
 
-ipcMain.handle('export-pdf', async (e, { defaultPath }) => {
+ipcMain.handle('export-pdf', async (e, { defaultPath, html }) => {
   const win = BrowserWindow.fromWebContents(e.sender);
   const result = await dialog.showSaveDialog(win, {
     defaultPath: defaultPath || 'export.pdf',
@@ -278,10 +280,13 @@ ipcMain.handle('export-pdf', async (e, { defaultPath }) => {
   });
   if (result.canceled || !result.filePath) return { success: false, canceled: true };
   try {
-    const data = await win.webContents.printToPDF({
-      printBackground: true,
-      pageSize: 'A4',
-      margins: { top: 0, bottom: 0, left: 0, right: 0 }
+    const data = await renderAndExport(html, async (offscreen) => {
+      return offscreen.webContents.printToPDF({
+        printBackground: true,
+        pageSize: 'A4',
+        margins: { top: 0, bottom: 0, left: 0, right: 0 },
+        preferCSSPageSize: true
+      });
     });
     await fs.writeFile(result.filePath, data);
     return { success: true, filePath: result.filePath };
@@ -289,6 +294,71 @@ ipcMain.handle('export-pdf', async (e, { defaultPath }) => {
     return { success: false, error: err.message };
   }
 });
+
+ipcMain.handle('export-png-fullpage', async (e, { defaultPath, html }) => {
+  const win = BrowserWindow.fromWebContents(e.sender);
+  const result = await dialog.showSaveDialog(win, {
+    defaultPath: defaultPath || 'export.png',
+    filters: [{ name: 'PNG', extensions: ['png'] }]
+  });
+  if (result.canceled || !result.filePath) return { success: false, canceled: true };
+  try {
+    const buf = await renderAndExport(html, async (offscreen) => {
+      const image = await offscreen.webContents.capturePage();
+      return image.toPNG();
+    });
+    await fs.writeFile(result.filePath, buf);
+    return { success: true, filePath: result.filePath };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
+// 在隐藏窗口里完整渲染 html,自动撑高到内容自然高度,然后回调里执行 printToPDF/capturePage
+async function renderAndExport(html, run) {
+  const PRINT_WIDTH = 1024;
+  const offscreen = new BrowserWindow({
+    width: PRINT_WIDTH,
+    height: 800,
+    show: false,
+    webPreferences: {
+      offscreen: false,
+      sandbox: true,
+      contextIsolation: true,
+      nodeIntegration: false,
+      backgroundThrottling: false
+    }
+  });
+  try {
+    const dataUrl = 'data:text/html;charset=UTF-8,' + encodeURIComponent(html);
+    await offscreen.loadURL(dataUrl);
+    // 等图片/字体
+    await offscreen.webContents.executeJavaScript(`
+      Promise.all([
+        document.fonts ? document.fonts.ready : Promise.resolve(),
+        ...Array.from(document.images).map(img =>
+          img.complete ? Promise.resolve() :
+          new Promise(r => { img.addEventListener('load', r); img.addEventListener('error', r); })
+        )
+      ]).then(() => true)
+    `);
+    // 量内容真实高度,把窗口撑到这个尺寸,再渲染一帧
+    const fullHeight = await offscreen.webContents.executeJavaScript(`
+      Math.max(
+        document.body.scrollHeight,
+        document.documentElement.scrollHeight,
+        document.body.offsetHeight,
+        document.documentElement.offsetHeight
+      )
+    `);
+    const targetHeight = Math.max(800, Math.ceil(fullHeight));
+    offscreen.setContentSize(PRINT_WIDTH, targetHeight);
+    await new Promise(r => setTimeout(r, 200));
+    return await run(offscreen);
+  } finally {
+    if (!offscreen.isDestroyed()) offscreen.destroy();
+  }
+}
 
 ipcMain.handle('export-binary', async (e, { defaultPath, dataUrl, filters }) => {
   const win = BrowserWindow.fromWebContents(e.sender);
@@ -322,6 +392,21 @@ ipcMain.handle('export-text', async (e, { defaultPath, content, filters }) => {
 });
 
 ipcMain.on('open-external', (_e, url) => shell.openExternal(url));
+
+ipcMain.handle('format-html', async (_e, { content }) => {
+  try {
+    const prettier = require('prettier');
+    const formatted = await prettier.format(content || '', {
+      parser: 'html',
+      printWidth: 100,
+      tabWidth: 2,
+      htmlWhitespaceSensitivity: 'css'
+    });
+    return { success: true, content: formatted };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
 
 app.on('open-file', (e, filePath) => {
   e.preventDefault();

@@ -258,21 +258,12 @@ async function openFileDialog() {
 async function formatHTML() {
   const tab = state.activeTab;
   if (!tab || !state.editorInstance) return;
-  try {
-    const prettier = require('prettier/standalone');
-    const pluginHtml = require('prettier/plugins/html');
-    const formatted = await prettier.format(tab.content, {
-      parser: 'html',
-      plugins: [pluginHtml],
-      printWidth: 100,
-      tabWidth: 2,
-      htmlWhitespaceSensitivity: 'css'
-    });
-    state.editorInstance.setValue(formatted);
+  const res = await ipcRenderer.invoke('format-html', { content: tab.content });
+  if (res.success) {
+    state.editorInstance.setValue(res.content);
     toast('已格式化');
-  } catch (e) {
-    console.error(e);
-    toast('格式化失败:' + e.message);
+  } else {
+    toast('格式化失败:' + res.error);
   }
 }
 
@@ -288,6 +279,109 @@ async function copyRendered() {
   const text = window.HTMLPadPreview.getRenderedText(iframe);
   await navigator.clipboard.writeText(text);
   toast('已复制渲染后文本');
+}
+
+// ============== Pane Divider Drag ==============
+function setupDividerDrag() {
+  const workspace = document.getElementById('workspace');
+  const divider = document.getElementById('paneDivider');
+  if (!divider || !workspace) return;
+  const MIN = 220;
+
+  divider.addEventListener('mousedown', (e) => {
+    if (state.viewMode !== 'split') return;
+    e.preventDefault();
+    divider.classList.add('dragging');
+    document.body.classList.add('divider-dragging');
+    const rect = workspace.getBoundingClientRect();
+
+    const onMove = (ev) => {
+      const x = ev.clientX - rect.left;
+      const w = rect.width;
+      const dividerW = 6;
+      const editorW = Math.max(MIN, Math.min(w - MIN - dividerW, x - dividerW / 2));
+      workspace.style.setProperty('--editor-w', editorW + 'px');
+    };
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      divider.classList.remove('dragging');
+      document.body.classList.remove('divider-dragging');
+      if (state.editorInstance) state.editorInstance.layout();
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+
+  // 双击复位 50/50
+  divider.addEventListener('dblclick', () => {
+    workspace.style.removeProperty('--editor-w');
+    if (state.editorInstance) state.editorInstance.layout();
+  });
+}
+
+// ============== Text Edit (preview → source) ==============
+function applyTextEdit(offset, newText) {
+  const tab = state.activeTab;
+  if (!tab) return;
+  const html = tab.content;
+  const range = findInnerTextRange(html, offset);
+  if (!range) { toast('该元素无法直接编辑'); return; }
+  const escaped = String(newText)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  const newHtml = html.slice(0, range.start) + escaped + html.slice(range.end);
+  if (state.editorInstance) {
+    state.editorInstance.setValue(newHtml);
+  } else {
+    tab.content = newHtml;
+    onEditorChange(newHtml);
+  }
+  toast('已更新文字');
+}
+
+function findInnerTextRange(html, offset) {
+  if (typeof offset !== 'number' || offset < 0 || offset >= html.length) return null;
+  if (html[offset] !== '<') return null;
+  const tagMatch = html.slice(offset).match(/^<([A-Za-z][\w-]*)/);
+  if (!tagMatch) return null;
+  const tagName = tagMatch[1].toLowerCase();
+  const VOID = ['br','hr','img','input','meta','link','area','base','col','embed','source','track','wbr'];
+  if (VOID.includes(tagName)) return null;
+  const openEnd = html.indexOf('>', offset);
+  if (openEnd === -1) return null;
+  if (html[openEnd - 1] === '/') return null;
+
+  const lower = html.toLowerCase();
+  const openNeedle = '<' + tagName;
+  const closeNeedle = '</' + tagName;
+  let depth = 1;
+  let i = openEnd + 1;
+  while (i < html.length) {
+    const nextClose = lower.indexOf(closeNeedle, i);
+    if (nextClose === -1) return null;
+    let validOpen = -1;
+    let searchFrom = i;
+    while (true) {
+      const cand = lower.indexOf(openNeedle, searchFrom);
+      if (cand === -1 || cand >= nextClose) break;
+      const c = html[cand + openNeedle.length];
+      if (c === undefined || /[\s>/]/.test(c)) { validOpen = cand; break; }
+      searchFrom = cand + openNeedle.length;
+    }
+    if (validOpen !== -1) {
+      depth++;
+      i = validOpen + openNeedle.length;
+    } else {
+      depth--;
+      if (depth === 0) {
+        return { start: openEnd + 1, end: nextClose };
+      }
+      i = nextClose + closeNeedle.length;
+    }
+  }
+  return null;
 }
 
 // ============== Toast ==============
@@ -432,9 +526,10 @@ async function init() {
   // 设置初始 device 到 preview-pane(否则没 padding 切换会错位)
   document.querySelector('.preview-pane').dataset.device = state.deviceMode;
 
-  // 监听预览 iframe 的点击,跳转 Monaco 光标
+  // 监听预览 iframe 的点击,跳转 Monaco 光标;以及双击文本编辑回写
   window.addEventListener('message', (e) => {
-    if (e.data?.type === 'htmlpad-jump' && state.editorInstance && state.monaco) {
+    if (!e.data) return;
+    if (e.data.type === 'htmlpad-jump' && state.editorInstance && state.monaco) {
       const offset = e.data.offset;
       const model = state.editorInstance.getModel();
       if (!model) return;
@@ -442,14 +537,84 @@ async function init() {
       state.editorInstance.revealLineInCenter(pos.lineNumber);
       state.editorInstance.setPosition(pos);
       state.editorInstance.focus();
+    } else if (e.data.type === 'htmlpad-text-edit') {
+      applyTextEdit(e.data.offset, e.data.newText);
+    } else if (e.data.type === 'htmlpad-edit-begin') {
+      // 让 Monaco 失焦,把焦点让给 iframe 的 contenteditable
+      try {
+        if (state.editorInstance && typeof state.editorInstance.getDomNode === 'function') {
+          const dom = state.editorInstance.getDomNode();
+          if (dom && document.activeElement && dom.contains(document.activeElement)) {
+            document.activeElement.blur();
+          }
+        }
+        const iframe = document.getElementById('previewFrame');
+        if (iframe && iframe.contentWindow) iframe.contentWindow.focus();
+      } catch (err) {
+        console.warn('edit-begin focus handoff failed:', err);
+      }
+    } else if (e.data.type === 'htmlpad-debug') {
+      console.log('[htmlpad/bridge]', e.data.msg);
     }
   });
+
+  // 编辑器/预览分隔条拖动
+  setupDividerDrag();
 
   // 启动 Monaco
   const editorHost = document.getElementById('editorHost');
   try {
     state.monaco = await window.HTMLPadEditor.loadMonaco();
     state.editorInstance = await window.HTMLPadEditor.createEditor(editorHost, state.activeTab.content, onEditorChange);
+
+    // 左侧编辑器选区变化 → 右侧预览高亮对应元素
+    let selectTimer = null;
+    const editorListeners = [];
+    if (state.editorInstance.onDidChangeCursorSelection) {
+      editorListeners.push(state.editorInstance.onDidChangeCursorSelection((e) => {
+        clearTimeout(selectTimer);
+        const model = state.editorInstance.getModel();
+        if (!model) return;
+        const sel = state.editorInstance.getSelection();
+        if (!sel || sel.isEmpty()) {
+          // 空选区(光标移动):延迟清除,等后续非空选区打断
+          selectTimer = setTimeout(() => {
+            try {
+              document.getElementById('previewFrame')?.contentWindow?.postMessage(
+                { type: 'htmlpad-source-select', offset: -1 }, '*'
+              );
+            } catch (_) {}
+          }, 250);
+        } else {
+          // 非空选区:打断清除,立即高亮
+          const offset = model.getOffsetAt(sel.getStartPosition());
+          selectTimer = setTimeout(() => {
+            try {
+              document.getElementById('previewFrame')?.contentWindow?.postMessage(
+                { type: 'htmlpad-source-select', offset }, '*'
+              );
+            } catch (_) {}
+          }, 60);
+        }
+      }));
+    } else {
+      // textarea 降级模式:监听 select 事件
+      const ta = editorHost.querySelector('textarea');
+      if (ta) {
+        ta.addEventListener('select', () => {
+          clearTimeout(selectHighlightTimer);
+          selectHighlightTimer = setTimeout(() => {
+            const val = ta.value;
+            const start = ta.selectionStart;
+            try {
+              document.getElementById('previewFrame')?.contentWindow?.postMessage(
+                { type: 'htmlpad-source-select', offset: start }, '*'
+              );
+            } catch (_) {}
+          }, 100);
+        });
+      }
+    }
   } catch (e) {
     console.error('Monaco 加载失败,降级为 textarea:', e);
     editorHost.innerHTML = '';
