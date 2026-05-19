@@ -1,101 +1,182 @@
 # HTMLPad
 
-> HTML 双向编辑与阅读工具 for Mac · 苹果浅色风 · 零 AI 依赖 · 纯本地
+> HTML Dual-Mode Editor & Immersive Reader for Mac · Apple Light Aesthetic · Zero AI Dependency · Pure Local
 
-HTMLPad 是 [mdskill](../mdskill/) 的姊妹产品 —— 把 Markdown 换成 HTML,既能像 IDE 一样写 HTML/CSS/JS 实时预览,也能像沉浸式阅读器一样打开 AI 生成的单页报告、邮件模板、营销页。
+HTMLPad is a beautifully crafted native macOS app for crafting and reading HTML content — whether you're building marketing pages, email templates, AI-generated reports, or documentation. It combines the power of a professional code editor with the comfort of an immersive reading experience.
 
-## ✨ 核心特性
+---
 
-- **Monaco 编辑器** · VS Code 同款,HTML/CSS/JS 高亮 + 自动闭合 + Emmet 缩写
-- **三视图自由切换** · 仅编辑 / 分屏 / 仅预览(`⌘1` `⌘2` `⌘3`)
-- **多设备预览** · iPhone / iPad / Desktop 三档真实尺寸(`⌘⇧1/2/3`)
-- **10 套阅读主题** · 原生、阅读模式、报纸风、Notion 简洁、GitHub 文档、Apple 文档、杂志风、终端绿屏、打印优化、护眼米色
-- **多标签页** · 同时打开多个 HTML,未保存圆点提示
-- **导出能力** · PDF · PNG 长截图 · 带主题样式的独立 HTML
-- **苹果浅色风** · 毛玻璃工具栏 · SF Pro 字体 · 圆角 · 深浅模式
-- **文件关联** · 双击 `.html`、`.htm` 直接用 HTMLPad 打开
+## Key Features
 
-## 📦 安装与启动
+**Editor**
+- Monaco Editor (same engine as VS Code) with HTML/CSS/JS syntax highlighting, auto-closing, and Emmet abbreviation support
+- Multi-tab editing with unsaved-change indicators
+- One-click HTML formatting via Prettier (`⌥⇧F`)
 
+**Preview**
+- Three view modes: Editor Only / Split View / Preview Only (`⌘1` `⌘2` `⌘3`)
+- Three device previews: iPhone / iPad / Desktop (`⌘⇧1/2/3`) with accurate frame sizes
+- 10 reading themes that inject seamlessly without disturbing your original CSS
+
+**Reading Themes**
+| Theme | Description |
+|-------|-------------|
+| Native | No injection — pure author intent |
+| Reading Mode | Serif + 720px narrow column, warm cream background |
+| Notion | Clean, generous whitespace, sans-serif |
+| GitHub Docs | github-markdown style, bordered headings |
+| Apple Docs | SF Pro + Apple site palette, generous type scale |
+| Magazine | Cormorant Garamond + drop cap + centered headings |
+| Terminal | Monospace, green-on-black, `$ render` prefix |
+| Print Optimized | A4 + serif + B&W, ready for PDF export |
+| Eye Care Beige | Warm beige background, brown text, easy on the eyes |
+
+**Export**
+- PDF — full-page export with theme CSS injected, rendered in hidden offscreen window
+- PNG Screenshot — full-page capture at 2× pixel ratio
+- Standalone HTML — theme CSS baked in, opens in any browser
+
+**Native macOS**
+- Apple light aesthetic — vibrancy, SF Pro, rounded corners, light/dark mode
+- File association — double-click `.html`/`.htm` to open directly in HTMLPad
+- Menu bar, keyboard shortcuts, multiple windows and tabs
+
+---
+
+## Getting Started
+
+### Prerequisites
+- macOS 10.12+
+- Node.js 18+ (for development)
+- npm
+
+### Installation
+
+**From source:**
 ```bash
-cd htmlskill
+git clone <repo-url> htmlpad
+cd htmlpad
 npm install
-npm start
+npm run dev     # development mode with DevTools
+npm start       # production mode
 ```
 
-首次启动会从 `node_modules/monaco-editor/min` 加载本地 Monaco,无 CDN 依赖。
+**From release:**
+Download the `.dmg` from releases and drag into Applications.
 
-## ⌨️ 快捷键
+### Building from source
+```bash
+npm run build        # builds .dmg + .zip into dist/
+npm run build:mac    # macOS only
+```
 
-| 类别 | 快捷键 | 功能 |
-|------|--------|------|
-| 文件 | `⌘N` | 新建窗口 |
-| 文件 | `⌘T` | 新建标签页 |
-| 文件 | `⌘O` | 打开 HTML |
-| 文件 | `⌘S` | 保存 |
-| 文件 | `⌘⇧S` | 另存为 |
-| 文件 | `⌘W` | 关闭当前标签页 |
-| 视图 | `⌘1` / `⌘2` / `⌘3` | 编辑 / 分屏 / 预览 |
-| 设备 | `⌘⇧1` / `⌘⇧2` / `⌘⇧3` | iPhone / iPad / Desktop |
-| 视图 | `⌘⇧L` | 切换深色模式 |
-| 编辑 | `⌥⇧F` | 一键格式化 HTML |
-| 导出 | `⌘E` | 导出 PDF |
-| 导出 | `⌘⇧E` | 导出 PNG 长截图 |
-| 复制 | `⌘⇧C` | 复制 HTML 源码 |
+---
 
-## 🎨 主题预览说明
+## Keyboard Shortcuts
 
-- **原生** —— 不加任何样式,完全保留作者原始 CSS
-- **阅读模式** —— 衬线字体 + 720px 窄栏 + 米色底,适合长文阅读
-- **Notion 简洁** —— 大留白,无衬线,行高 1.7
-- **GitHub 文档** —— github-markdown 同款,标题带横线
-- **Apple 文档** —— SF Pro 字体 + 苹果官网配色,大字号
-- **杂志风** —— Cormorant Garamond + drop cap + 居中标题
-- **终端绿屏** —— 等宽字体 + 绿底黑字 + `$ render` 前缀
-- **打印优化** —— A4 + 黑白 + 衬线,直接打印或导出 PDF 用
-- **护眼米色** —— 米色底棕字,长时间阅读不刺眼
+| Category | Shortcut | Action |
+|----------|----------|--------|
+| File | `⌘N` | New Window |
+| File | `⌘T` | New Tab |
+| File | `⌘O` | Open HTML |
+| File | `⌘S` | Save |
+| File | `⌘⇧S` | Save As |
+| File | `⌘W` | Close Tab |
+| View | `⌘1` / `⌘2` / `⌘3` | Edit / Split / Preview |
+| Device | `⌘⇧1` / `⌘⇧2` / `⌘⇧3` | iPhone / iPad / Desktop |
+| View | `⌘⇧L` | Toggle Dark Mode |
+| Edit | `⌥⇧F` | Format HTML |
+| Export | `⌘E` | Export PDF |
+| Export | `⌘⇧E` | Export PNG Full-Page |
+| Copy | `⌘⇧C` | Copy HTML Source |
+| Edit | `⌘Z` / `⌘⇧Z` | Undo / Redo |
+| Edit | `⌘A` | Select All |
 
-## 🏗 项目结构
+---
+
+## Project Structure
 
 ```
-htmlskill/
-├── main.js                Electron 主进程 + 菜单 + IPC + 文件关联
+htmlpad/
+├── main.js              Electron main process + menus + IPC + file associations
 ├── package.json
 ├── assets/
+│   ├── icon.icns        App icon (macOS)
+│   ├── icon.png         App icon (fallback)
+│   └── logo.svg         Logo
 └── renderer/
-    ├── index.html         主窗口结构
-    ├── styles.css         苹果浅色风
-    ├── app.js             状态管理 + tab + 事件桥接
-    ├── editor.js          Monaco 封装
-    ├── preview.js         iframe + 主题注入
-    ├── themes.js          10 套主题 CSS
+    ├── index.html       Main window structure
+    ├── styles.css       Apple light aesthetic styles
+    ├── app.js           State management + tabs + event bridge
+    ├── editor.js        Monaco wrapper
+    ├── preview.js       iframe + theme injection + bidirectional bridge
+    ├── themes.js         10 reading-enhancement themes
     └── exporters/
-        ├── pdf.js
-        ├── png.js
-        └── html.js
+        ├── pdf.js        Offscreen-window PDF export
+        ├── png.js        Offscreen-window PNG full-page capture
+        └── html.js       Standalone HTML export with theme injection
 ```
 
-## 🛠 技术栈
+---
 
-- Electron 28
-- Monaco Editor 0.45(本地加载)
-- electron-store 8
-- html-to-image 1.11(PNG 导出)
-- prettier 3.1(格式化)
+## Tech Stack
 
-## 🆚 和 mdskill 的关系
+| Layer | Technology |
+|-------|------------|
+| Framework | Electron 28 |
+| Editor | Monaco Editor 0.45 (local load, no CDN) |
+| Storage | electron-store 8 |
+| Formatting | Prettier 3.1 |
+| Bundler | electron-builder 24 |
+| Platform | macOS (ARM64 + x64) |
 
-| 维度 | mdskill | HTMLPad |
-|------|---------|---------|
-| 输入 | Markdown | HTML |
-| 编辑器 | textarea | Monaco |
-| 预览 | marked 转 HTML | 直接渲染(iframe 沙箱) |
-| 主题 | 13 套渲染主题 | 10 套阅读增强主题 |
-| 设备预览 | ❌ | ✅ |
-| 多标签页 | ❌ | ✅ |
-| AI | 有 | 无(纯本地) |
-| 视觉 | VS Code 深色 | 苹果浅色 |
+---
 
-## 📄 License
+## Relationship with mdskill
 
-MIT
+HTMLPad is the HTML sibling of [mdskill](../mdskill/) (Markdown editor):
+
+| Dimension | mdskill | HTMLPad |
+|-----------|---------|---------|
+| Input | Markdown | HTML |
+| Editor | textarea | Monaco |
+| Preview | marked → HTML | iframe sandbox |
+| Themes | 13 rendering themes | 10 reading themes |
+| Device Preview | ✗ | ✓ |
+| Multi-Tab | ✗ | ✓ |
+| AI | Yes | No (pure local) |
+| Visual Style | VS Code Dark | Apple Light |
+
+---
+
+## Contributing & Collaboration
+
+This project is open to contributions and collaboration. Whether you're fixing bugs, improving themes, adding features, or writing documentation — your help is welcome.
+
+**How to contribute:**
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/your-feature`)
+3. Make your changes and commit (`git commit -m 'Add something useful'`)
+4. Push to your fork and open a Pull Request
+
+**For partnership or business inquiries:** Please check the repository profile or open an issue to discuss collaboration opportunities.
+
+---
+
+## License
+
+MIT License — free to use, modify, and distribute.
+
+---
+
+## Author
+
+**Lorraine** — Independent developer passionate about building elegant, useful tools for the macOS ecosystem.
+
+- Open to collaboration on interesting projects
+- Focus areas: productivity tools, developer utilities, content creation workflows
+- Feel free to reach out via GitHub for collaboration discussions
+
+---
+
+*If HTMLPad saved your workflow, star the repo and share it with someone who writes HTML.*
