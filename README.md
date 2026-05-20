@@ -16,7 +16,7 @@ HTMLPad is a beautifully crafted native macOS app for crafting and reading HTML 
 **Preview**
 - Three view modes: Editor Only / Split View / Preview Only (`⌘1` `⌘2` `⌘3`)
 - Three device previews: iPhone / iPad / Desktop (`⌘⇧1/2/3`) with accurate frame sizes
-- 10 reading themes that inject seamlessly without disturbing your original CSS
+- 14 reading themes that inject seamlessly without disturbing your original CSS
 
 **Reading Themes**
 | Theme | Description |
@@ -115,7 +115,7 @@ htmlpad/
     ├── app.js           State management + tabs + event bridge
     ├── editor.js        Monaco wrapper
     ├── preview.js       iframe + theme injection + bidirectional bridge
-    ├── themes.js         10 reading-enhancement themes
+    ├── themes.js        14 reading-enhancement themes
     └── exporters/
         ├── pdf.js        Offscreen-window PDF export
         ├── png.js        Offscreen-window PNG full-page capture
