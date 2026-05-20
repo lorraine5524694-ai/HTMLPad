@@ -1,7 +1,7 @@
 # HTMLPad - GSD Phase Plan
 
 ## Goal
-Build HTMLPad — a Mac Electron HTML 双向工具(编辑+阅读对等),苹果浅色风,支持 Monaco 编辑器、三视图切换、多设备预览、10 套预览主题、多标签页、PDF/PNG/HTML 导出。结构对标 mdskill,语言换成 HTML,无 AI、无授权体系,纯本地。
+Build HTMLPad — a Mac Electron HTML 双向工具(编辑+阅读对等),苹果浅色风,支持 Monaco 编辑器、三视图切换、多设备预览、10 套预览主题、多标签页、PDF/PNG/HTML 导出，纯本地，无 AI。
 
 ## Success Criteria
 - `npm install && npm start` 能启动应用

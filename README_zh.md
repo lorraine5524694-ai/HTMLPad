@@ -132,21 +132,6 @@ htmlpad/
 
 ---
 
-## 与 mdskill 的关系
-
-HTMLPad 是 [mdskill](../mdskill/)（Markdown 编辑器）的姊妹产品——把 Markdown 换成 HTML，专注 HTML 的编辑与阅读：
-
-| 维度 | mdskill | HTMLPad |
-|------|---------|---------|
-| 输入 | Markdown | HTML |
-| 编辑器 | textarea | Monaco |
-| 预览 | marked 转 HTML | iframe 沙箱直接渲染 |
-| 主题 | 13 套渲染主题 | 10 套阅读增强主题 |
-| 设备预览 | ✗ | ✓ |
-| 多标签页 | ✗ | ✓ |
-| AI | 有 | 无（纯本地） |
-| 视觉风格 | VS Code 深色 | 苹果浅色 |
-
 ---
 
 ## 参与贡献与合作
@@ -171,11 +156,13 @@ MIT License — 可自由使用、修改和分发。
 
 ## 关于作者
 
-**Lorraine** — 独立开发者，热衷于为 macOS 生态打造优雅、实用的工具。
+🚀关于我
+Lorraine
+AI 营销从业者，独立开发者。
+主要折腾 AI Agents、LLM 工作流、自动化系统，以及各种能快速落地的实用工具。
 
-- 乐于探索有意思的项目合作
-- 专注领域：效率工具、开发者实用工具、内容创作工作流
-- 欢迎通过 GitHub 联系讨论合作机会
+🤝 联系我
+💬微信: lorraine_xll
 
 ---
 

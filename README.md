@@ -132,21 +132,6 @@ htmlpad/
 
 ---
 
-## Relationship with mdskill
-
-HTMLPad is the HTML sibling of [mdskill](../mdskill/) (Markdown editor):
-
-| Dimension | mdskill | HTMLPad |
-|-----------|---------|---------|
-| Input | Markdown | HTML |
-| Editor | textarea | Monaco |
-| Preview | marked → HTML | iframe sandbox |
-| Themes | 13 rendering themes | 10 reading themes |
-| Device Preview | ✗ | ✓ |
-| Multi-Tab | ✗ | ✓ |
-| AI | Yes | No (pure local) |
-| Visual Style | VS Code Dark | Apple Light |
-
 ---
 
 ## Contributing & Collaboration
@@ -169,13 +154,15 @@ MIT License — free to use, modify, and distribute.
 
 ---
 
-## Author
+## About Me
 
-**Lorraine** — Independent developer passionate about building elegant, useful tools for the macOS ecosystem.
+🚀 About Me
+Lorraine
+AI Marketing Practitioner & Independent Developer.
+Building AI Agents, LLM workflows, automation systems, and practical tools that ship fast.
 
-- Open to collaboration on interesting projects
-- Focus areas: productivity tools, developer utilities, content creation workflows
-- Feel free to reach out via GitHub for collaboration discussions
+🤝 Contact
+💬 WeChat: lorraine_xll
 
 ---
 
