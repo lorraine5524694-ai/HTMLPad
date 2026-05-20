@@ -30,6 +30,11 @@ HTMLPad is a beautifully crafted native macOS app for crafting and reading HTML 
 | Terminal | Monospace, green-on-black, `$ render` prefix |
 | Print Optimized | A4 + serif + B&W, ready for PDF export |
 | Eye Care Beige | Warm beige background, brown text, easy on the eyes |
+| Vellum | Deep navy + warm yellow serif (inspired by beautiful-html-templates) |
+| Grove | Forest green + warm cream serif (inspired by beautiful-html-templates) |
+| Soft Editorial | Cream paper + sage/pink accents (inspired by beautiful-html-templates) |
+| Coral | Dark canvas + coral red + Bebas Neue (inspired by beautiful-html-templates) |
+| Signal | Deep navy + ivory + gold serif (inspired by beautiful-html-templates) |
 
 **Export**
 - PDF — full-page export with theme CSS injected, rendered in hidden offscreen window

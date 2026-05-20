@@ -314,6 +314,181 @@ const THEMES = [
       html.htmlpad-theme body.htmlpad-theme pre { background: #EDE0C8 !important; padding: 16px !important; border-radius: 6px !important; border-left: 3px solid #8B4513 !important; }
       html.htmlpad-theme body.htmlpad-theme blockquote { border-left: 3px solid #8B4513 !important; color: #6B5440 !important; padding-left: 16px !important; font-style: italic !important; }
     `
+  },
+  // ── 以下 4 套新主题灵感来自 https://github.com/zarazhangrui/beautiful-html-templates (MIT License) ──
+  {
+    id: 'vellum',
+    name: '羊皮纸·深蓝',
+    css: `
+      html.htmlpad-theme { background: #2a3870 !important; }
+      html.htmlpad-theme body.htmlpad-theme {
+        max-width: 820px !important;
+        margin: 0 auto !important;
+        padding: 60px 40px !important;
+        font-family: "DM Sans", "Noto Sans SC", system-ui, sans-serif !important;
+        font-size: 1.05rem !important;
+        line-height: 1.75 !important;
+        color: #E8D85C !important;
+        background: transparent !important;
+      }
+      html.htmlpad-theme body.htmlpad-theme h1,
+      html.htmlpad-theme body.htmlpad-theme h2,
+      html.htmlpad-theme body.htmlpad-theme h3 {
+        font-family: "Cormorant Garamond", "Noto Serif SC", Georgia, serif !important;
+        color: #F5E168 !important;
+        font-weight: 500 !important;
+      }
+      html.htmlpad-theme body.htmlpad-theme h1 { font-size: 3rem !important; font-style: italic !important; letter-spacing: -0.02em !important; margin: .5em 0 !important; }
+      html.htmlpad-theme body.htmlpad-theme h2 { font-size: 1.8rem !important; font-style: italic !important; color: rgba(232,216,92,.62) !important; }
+      html.htmlpad-theme body.htmlpad-theme h3 { font-size: 1.3rem !important; color: rgba(232,216,92,.8) !important; }
+      html.htmlpad-theme body.htmlpad-theme p { color: #E8D85C !important; margin: .8em 0 !important; }
+      html.htmlpad-theme body.htmlpad-theme a { color: #F5E168 !important; text-decoration: underline !important; }
+      html.htmlpad-theme body.htmlpad-theme code { font-family: "Courier Prime", monospace !important; color: #E8D85C !important; background: rgba(232,216,92,.12) !important; padding: 2px 6px !important; border-radius: 3px !important; }
+      html.htmlpad-theme body.htmlpad-theme pre { background: rgba(255,255,255,.05) !important; padding: 16px !important; border-left: 3px solid #3a7878 !important; border-radius: 0 4px 4px 0 !important; }
+      html.htmlpad-theme body.htmlpad-theme pre code { background: transparent !important; color: #E8D85C !important; }
+      html.htmlpad-theme body.htmlpad-theme blockquote { border-left: 3px solid #3a7878 !important; color: rgba(232,216,92,.62) !important; padding-left: 16px !important; font-style: italic !important; }
+      html.htmlpad-theme body.htmlpad-theme em { color: #F5E168 !important; font-style: italic !important; }
+    `
+  },
+  {
+    id: 'grove',
+    name: '森林·羊皮',
+    css: `
+      html.htmlpad-theme { background: #192b1b !important; }
+      html.htmlpad-theme body.htmlpad-theme {
+        max-width: 800px !important;
+        margin: 0 auto !important;
+        padding: 60px 40px !important;
+        font-family: "Jost", "Noto Sans SC", system-ui, sans-serif !important;
+        font-size: 1rem !important;
+        line-height: 1.7 !important;
+        color: #d4cfbf !important;
+        background: transparent !important;
+      }
+      html.htmlpad-theme body.htmlpad-theme h1,
+      html.htmlpad-theme body.htmlpad-theme h2,
+      html.htmlpad-theme body.htmlpad-theme h3 {
+        font-family: "Playfair Display", "Noto Serif SC", Georgia, serif !important;
+        color: #d4cfbf !important;
+        font-weight: 400 !important;
+        letter-spacing: -0.01em !important;
+      }
+      html.htmlpad-theme body.htmlpad-theme h1 { font-size: 2.4rem !important; margin: .5em 0 !important; }
+      html.htmlpad-theme body.htmlpad-theme h2 { font-size: 1.6rem !important; margin: 1.2em 0 .6em !important; }
+      html.htmlpad-theme body.htmlpad-theme h3 { font-size: 1.25rem !important; font-style: italic !important; color: #c8524a !important; }
+      html.htmlpad-theme body.htmlpad-theme p { color: #d4cfbf !important; margin: .6em 0 !important; }
+      html.htmlpad-theme body.htmlpad-theme a { color: #c8524a !important; text-decoration: none !important; border-bottom: 1px solid rgba(200,82,74,.4) !important; }
+      html.htmlpad-theme body.htmlpad-theme code { font-family: "JetBrains Mono", monospace !important; background: rgba(212,207,191,.1) !important; color: #d4cfbf !important; padding: 2px 5px !important; border-radius: 3px !important; font-size: .9em !important; }
+      html.htmlpad-theme body.htmlpad-theme pre { background: rgba(212,207,191,.06) !important; padding: 16px !important; border-radius: 4px !important; border-left: 3px solid #c8524a !important; }
+      html.htmlpad-theme body.htmlpad-theme pre code { background: transparent !important; }
+      html.htmlpad-theme body.htmlpad-theme blockquote { border-left: 3px solid #c8524a !important; color: rgba(212,207,191,.6) !important; padding-left: 16px !important; font-style: italic !important; }
+      html.htmlpad-theme body.htmlpad-theme hr { border: none !important; border-top: 1px solid rgba(212,207,191,.12) !important; margin: 2em 0 !important; }
+    `
+  },
+  {
+    id: 'editorial-soft',
+    name: '粉彩编辑风',
+    css: `
+      html.htmlpad-theme { background: #F2EEDF !important; }
+      html.htmlpad-theme body.htmlpad-theme {
+        max-width: 780px !important;
+        margin: 0 auto !important;
+        padding: 64px 40px !important;
+        font-family: "Cormorant Garamond", "Noto Serif SC", Georgia, serif !important;
+        font-size: 1.1rem !important;
+        line-height: 1.8 !important;
+        color: #2A241B !important;
+        background: transparent !important;
+      }
+      html.htmlpad-theme body.htmlpad-theme h1,
+      html.htmlpad-theme body.htmlpad-theme h2,
+      html.htmlpad-theme body.htmlpad-theme h3 {
+        font-family: "Work Sans", "Noto Sans SC", system-ui, sans-serif !important;
+        color: #2A241B !important;
+        font-weight: 500 !important;
+        letter-spacing: -0.01em !important;
+      }
+      html.htmlpad-theme body.htmlpad-theme h1 { font-size: 2.2rem !important; margin: .4em 0 !important; }
+      html.htmlpad-theme body.htmlpad-theme h2 { font-size: 1.5rem !important; color: #5C5345 !important; }
+      html.htmlpad-theme body.htmlpad-theme h3 { font-size: 1.2rem !important; color: #5C5345 !important; }
+      html.htmlpad-theme body.htmlpad-theme p { color: #2A241B !important; margin: .7em 0 !important; }
+      html.htmlpad-theme body.htmlpad-theme a { color: #0969DA !important; text-decoration: none !important; border-bottom: 1px solid rgba(9,105,218,.3) !important; }
+      html.htmlpad-theme body.htmlpad-theme code { font-family: "Courier Prime", monospace !important; background: #ECE6D2 !important; color: #2A241B !important; padding: 2px 6px !important; border-radius: 4px !important; }
+      html.htmlpad-theme body.htmlpad-theme pre { background: #2A241B !important; color: #F2EEDF !important; padding: 20px !important; border-radius: 8px !important; }
+      html.htmlpad-theme body.htmlpad-theme pre code { background: transparent !important; color: inherit !important; }
+      html.htmlpad-theme body.htmlpad-theme blockquote { border-left: 4px solid #B7C7A8 !important; color: #5C5345 !important; padding-left: 16px !important; font-style: italic !important; }
+      html.htmlpad-theme body.htmlpad-theme em { color: #5C5345 !important; }
+    `
+  },
+  {
+    id: 'coral',
+    name: '珊瑚·墨黑',
+    css: `
+      html.htmlpad-theme { background: #1A1A1A !important; }
+      html.htmlpad-theme body.htmlpad-theme {
+        max-width: 820px !important;
+        margin: 0 auto !important;
+        padding: 60px 40px !important;
+        font-family: "Inter", "Noto Sans SC", system-ui, sans-serif !important;
+        font-size: 1rem !important;
+        line-height: 1.7 !important;
+        color: #d4d4d4 !important;
+        background: transparent !important;
+      }
+      html.htmlpad-theme body.htmlpad-theme h1,
+      html.htmlpad-theme body.htmlpad-theme h2,
+      html.htmlpad-theme body.htmlpad-theme h3 {
+        font-family: "Bebas Neue", "Noto Sans SC", sans-serif !important;
+        color: #FFFFFF !important;
+        letter-spacing: 0.05em !important;
+        text-transform: uppercase !important;
+      }
+      html.htmlpad-theme body.htmlpad-theme h1 { font-size: 3.5rem !important; margin: .3em 0 !important; color: #E85D5D !important; }
+      html.htmlpad-theme body.htmlpad-theme h2 { font-size: 2rem !important; margin: 1em 0 .5em !important; color: #FFFFFF !important; }
+      html.htmlpad-theme body.htmlpad-theme h3 { font-size: 1.4rem !important; color: #FFFFFF !important; }
+      html.htmlpad-theme body.htmlpad-theme p { color: #d4d4d4 !important; margin: .7em 0 !important; }
+      html.htmlpad-theme body.htmlpad-theme a { color: #E85D5D !important; text-decoration: none !important; }
+      html.htmlpad-theme body.htmlpad-theme a:hover { text-decoration: underline !important; }
+      html.htmlpad-theme body.htmlpad-theme code { font-family: "Inter", monospace !important; background: rgba(255,255,255,.08) !important; color: #E85D5D !important; padding: 2px 6px !important; border-radius: 4px !important; }
+      html.htmlpad-theme body.htmlpad-theme pre { background: rgba(232,93,93,.12) !important; padding: 16px !important; border-left: 3px solid #E85D5D !important; border-radius: 0 4px 4px 0 !important; }
+      html.htmlpad-theme body.htmlpad-theme pre code { background: transparent !important; color: #FFFFFF !important; }
+      html.htmlpad-theme body.htmlpad-theme blockquote { border-left: 3px solid #E85D5D !important; color: rgba(255,255,255,.6) !important; padding-left: 16px !important; font-style: italic !important; }
+      html.htmlpad-theme body.htmlpad-theme hr { border: none !important; border-top: 1px solid rgba(255,255,255,.1) !important; margin: 2em 0 !important; }
+    `
+  },
+  {
+    id: 'signal',
+    name: '墨蓝·象牙',
+    css: `
+      html.htmlpad-theme { background: #0D1B2A !important; }
+      html.htmlpad-theme body.htmlpad-theme {
+        max-width: 800px !important;
+        margin: 0 auto !important;
+        padding: 64px 48px !important;
+        font-family: "Inter", "Noto Sans SC", system-ui, sans-serif !important;
+        font-size: 1rem !important;
+        line-height: 1.75 !important;
+        color: #E8D9C0 !important;
+        background: transparent !important;
+      }
+      html.htmlpad-theme body.htmlpad-theme h1,
+      html.htmlpad-theme body.htmlpad-theme h2,
+      html.htmlpad-theme body.htmlpad-theme h3 {
+        font-family: "Playfair Display", "Noto Serif SC", Georgia, serif !important;
+        color: #E8D9C0 !important;
+        font-weight: 400 !important;
+      }
+      html.htmlpad-theme body.htmlpad-theme h1 { font-size: 2.5rem !important; letter-spacing: -0.02em !important; margin: .5em 0 !important; }
+      html.htmlpad-theme body.htmlpad-theme h2 { font-size: 1.7rem !important; font-style: italic !important; color: #D4A574 !important; margin: 1em 0 .5em !important; }
+      html.htmlpad-theme body.htmlpad-theme h3 { font-size: 1.3rem !important; color: #D4A574 !important; }
+      html.htmlpad-theme body.htmlpad-theme p { color: #E8D9C0 !important; margin: .6em 0 !important; }
+      html.htmlpad-theme body.htmlpad-theme a { color: #D4A574 !important; text-decoration: underline !important; text-decoration-color: rgba(212,165,116,.5) !important; }
+      html.htmlpad-theme body.htmlpad-theme code { font-family: "JetBrains Mono", monospace !important; background: rgba(232,217,192,.1) !important; color: #E8D9C0 !important; padding: 2px 5px !important; border-radius: 3px !important; }
+      html.htmlpad-theme body.htmlpad-theme pre { background: rgba(232,217,192,.06) !important; padding: 16px !important; border-radius: 6px !important; border-left: 3px solid #D4A574 !important; }
+      html.htmlpad-theme body.htmlpad-theme pre code { background: transparent !important; color: #E8D9C0 !important; }
+      html.htmlpad-theme body.htmlpad-theme blockquote { border-left: 3px solid #D4A574 !important; color: rgba(232,217,192,.6) !important; padding-left: 16px !important; font-style: italic !important; }
+      html.htmlpad-theme body.htmlpad-theme hr { border: none !important; height: 1px !important; background: rgba(232,217,192,.15) !important; margin: 2em 0 !important; }
+    `
   }
 ];
 
