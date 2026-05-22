@@ -93,6 +93,32 @@
           <iframe id="previewFrame" sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe>
         </div>
       </div>
+      <div class="welcome-view" id="welcomeView" hidden>
+        <div class="welcome-inner">
+          <div class="welcome-header">
+            <div>
+              <h1 class="welcome-title">最近文件</h1>
+              <p class="welcome-sub">近 7 天打开或编辑过的 HTML</p>
+            </div>
+            <div class="welcome-actions">
+              <button class="welcome-btn" id="welcomeOpenBtn">打开文件</button>
+              <button class="welcome-btn primary" id="welcomeNewBtn">新建空白</button>
+            </div>
+          </div>
+          <div class="welcome-grid" id="welcomeGrid"></div>
+          <div class="welcome-empty" id="welcomeEmpty" hidden>
+            <p class="welcome-empty-title">还没有最近文件</p>
+            <p class="welcome-empty-sub">打开一份 HTML 或新建空白文档开始</p>
+            <div class="welcome-actions">
+              <button class="welcome-btn" id="welcomeEmptyOpenBtn">打开文件</button>
+              <button class="welcome-btn primary" id="welcomeEmptyNewBtn">新建空白</button>
+            </div>
+          </div>
+          <div class="welcome-footer" id="welcomeFooter" hidden>
+            <button class="welcome-link" id="welcomeClearBtn">清空最近记录</button>
+          </div>
+        </div>
+      </div>
     </main>
 
     <!-- 底部状态条 -->
@@ -114,6 +140,7 @@
         <li>Monaco 编辑器 + Emmet</li>
         <li>14 套阅读主题 · 3 种设备预览</li>
         <li>导出 PDF / PNG 长图 / 独立 HTML</li>
+        <li>最近文件 7 天回顾</li>
       </ul>
       <button class="modal-close" id="aboutClose">完成</button>
     </div>

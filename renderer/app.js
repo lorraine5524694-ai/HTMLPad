@@ -54,12 +54,29 @@ function uid() { return `tab-${nextTabId++}`; }
 function newBlankTab(opts = {}) {
   return {
     id: uid(),
+    type: 'editor',
     filePath: opts.filePath || null,
     name: opts.filePath ? path.basename(opts.filePath) : 'Untitled',
     content: opts.content ?? DEFAULT_HTML,
     savedContent: opts.content ?? null,
     dirty: false
   };
+}
+
+function newWelcomeTabObj() {
+  return {
+    id: uid(),
+    type: 'welcome',
+    filePath: null,
+    name: '最近文件',
+    content: '',
+    savedContent: null,
+    dirty: false
+  };
+}
+
+function findWelcomeTab() {
+  return state.tabs.find(t => t.type === 'welcome');
 }
 
 function renderTabs() {
@@ -89,16 +106,29 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
+function applyActiveTabView() {
+  const tab = state.activeTab;
+  const ws = document.getElementById('workspace');
+  if (!ws) return;
+  if (tab && tab.type === 'welcome') {
+    ws.dataset.view = 'welcome';
+    renderWelcomeView();
+  } else {
+    ws.dataset.view = state.viewMode;
+  }
+}
+
 function activateTab(id) {
   if (state.activeTabId === id) return;
   state.activeTabId = id;
   const tab = state.activeTab;
   if (!tab) return;
 
-  if (state.editorInstance) {
+  if (tab.type !== 'welcome' && state.editorInstance) {
     state.editorInstance.setValue(tab.content);
   }
   renderTabs();
+  applyActiveTabView();
   updatePreview();
   updateStatusBar();
 }
@@ -109,7 +139,22 @@ function newTab(opts) {
   state.activeTabId = tab.id;
   if (state.editorInstance) state.editorInstance.setValue(tab.content);
   renderTabs();
+  applyActiveTabView();
   updatePreview();
+  updateStatusBar();
+}
+
+function newWelcomeTab() {
+  const existing = findWelcomeTab();
+  if (existing) {
+    activateTab(existing.id);
+    return;
+  }
+  const tab = newWelcomeTabObj();
+  state.tabs.push(tab);
+  state.activeTabId = tab.id;
+  renderTabs();
+  applyActiveTabView();
   updateStatusBar();
 }
 
@@ -126,14 +171,17 @@ function closeTab(id) {
     const next = state.tabs[idx] || state.tabs[idx - 1];
     if (next) {
       state.activeTabId = next.id;
-      if (state.editorInstance) state.editorInstance.setValue(next.content);
+      if (next.type !== 'welcome' && state.editorInstance) {
+        state.editorInstance.setValue(next.content);
+      }
     } else {
-      // 没有 tab 了,新建一个空的
-      newTab();
+      // 没有 tab 了,回到欢迎页
+      newWelcomeTab();
       return;
     }
   }
   renderTabs();
+  applyActiveTabView();
   updatePreview();
   updateStatusBar();
 }
@@ -181,7 +229,7 @@ function updatePreview() {
   clearTimeout(previewTimer);
   previewTimer = setTimeout(() => {
     const tab = state.activeTab;
-    if (!tab) return;
+    if (!tab || tab.type === 'welcome') return;
     const iframe = document.getElementById('previewFrame');
     window.HTMLPadPreview.setPreview(iframe, tab.content || '', getCurrentThemeCSS(), tab.filePath);
   }, PREVIEW_DEBOUNCE_MS);
@@ -189,6 +237,13 @@ function updatePreview() {
 
 function updateStatusBar() {
   const tab = state.activeTab;
+  if (tab && tab.type === 'welcome') {
+    document.getElementById('filePath').textContent = '最近文件';
+    document.getElementById('docStats').textContent = '';
+    document.getElementById('statusDot').className = 'status-dot';
+    document.getElementById('statusText').textContent = '欢迎页';
+    return;
+  }
   document.getElementById('filePath').textContent = tab ? (tab.filePath || tab.name) : '无文档';
   const text = tab?.content || '';
   const lines = text.split('\n').length;
@@ -200,7 +255,7 @@ function updateStatusBar() {
 
 function onEditorChange(value) {
   const tab = state.activeTab;
-  if (!tab) return;
+  if (!tab || tab.type === 'welcome') return;
   tab.content = value;
   tab.dirty = tab.savedContent !== null ? value !== tab.savedContent : value !== DEFAULT_HTML;
   renderTabs();
@@ -212,7 +267,7 @@ function onEditorChange(value) {
 
 async function saveCurrent() {
   const tab = state.activeTab;
-  if (!tab) return;
+  if (!tab || tab.type === 'welcome') return;
   if (!tab.filePath) return saveCurrentAs();
   const res = await ipcRenderer.invoke('save-file', { filePath: tab.filePath, content: tab.content });
   if (res.success) {
@@ -220,6 +275,7 @@ async function saveCurrent() {
     tab.dirty = false;
     renderTabs();
     updateStatusBar();
+    refreshWelcomeIfMounted();
     toast('已保存');
   } else {
     toast('保存失败:' + res.error);
@@ -228,7 +284,7 @@ async function saveCurrent() {
 
 async function saveCurrentAs() {
   const tab = state.activeTab;
-  if (!tab) return;
+  if (!tab || tab.type === 'welcome') return;
   const res = await ipcRenderer.invoke('save-file-as', {
     defaultPath: tab.name || 'untitled.html',
     content: tab.content
@@ -240,6 +296,7 @@ async function saveCurrentAs() {
     tab.dirty = false;
     renderTabs();
     updateStatusBar();
+    refreshWelcomeIfMounted();
     toast('已另存为');
   } else if (!res.canceled) {
     toast('保存失败:' + res.error);
@@ -252,12 +309,13 @@ async function openFileDialog() {
     res.files.forEach(f => {
       newTab({ filePath: f.path, content: f.content });
     });
+    refreshWelcomeIfMounted();
   }
 }
 
 async function formatHTML() {
   const tab = state.activeTab;
-  if (!tab || !state.editorInstance) return;
+  if (!tab || tab.type === 'welcome' || !state.editorInstance) return;
   const res = await ipcRenderer.invoke('format-html', { content: tab.content });
   if (res.success) {
     state.editorInstance.setValue(res.content);
@@ -269,7 +327,7 @@ async function formatHTML() {
 
 async function copyHTML() {
   const tab = state.activeTab;
-  if (!tab) return;
+  if (!tab || tab.type === 'welcome') return;
   await navigator.clipboard.writeText(tab.content);
   toast('已复制 HTML 源码');
 }
@@ -430,6 +488,84 @@ function toast(msg) {
 
 // ============== Init ==============
 
+// ============== Welcome view ==============
+
+function formatRelativeTime(ts) {
+  const diff = Date.now() - ts;
+  if (diff < 60_000) return '刚刚';
+  if (diff < 3600_000) return Math.floor(diff / 60_000) + ' 分钟前';
+  if (diff < 86_400_000) return Math.floor(diff / 3600_000) + ' 小时前';
+  if (diff < 172_800_000) return '昨天';
+  return Math.floor(diff / 86_400_000) + ' 天前';
+}
+
+function refreshWelcomeIfMounted() {
+  if (findWelcomeTab()) renderWelcomeView();
+}
+
+async function openRecentFile(p) {
+  const res = await ipcRenderer.invoke('read-file', p);
+  if (!res.success) {
+    toast('打开失败:' + res.error);
+    return;
+  }
+  await ipcRenderer.invoke('recent-files-touch', { path: p, kind: 'open' });
+  newTab({ filePath: p, content: res.content });
+}
+
+async function removeRecent(p) {
+  await ipcRenderer.invoke('recent-files-remove', { path: p });
+  refreshWelcomeIfMounted();
+}
+
+async function clearRecent() {
+  if (!confirm('清空全部最近文件记录?')) return;
+  await ipcRenderer.invoke('recent-files-clear');
+  refreshWelcomeIfMounted();
+  toast('已清空');
+}
+
+async function renderWelcomeView() {
+  const grid = document.getElementById('welcomeGrid');
+  const empty = document.getElementById('welcomeEmpty');
+  const footer = document.getElementById('welcomeFooter');
+  if (!grid) return;
+  const list = await ipcRenderer.invoke('recent-files-list');
+  grid.innerHTML = '';
+  if (!list.length) {
+    grid.hidden = true;
+    empty.hidden = false;
+    footer.hidden = true;
+    return;
+  }
+  grid.hidden = false;
+  empty.hidden = true;
+  footer.hidden = false;
+  list.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'welcome-card';
+    card.title = item.path;
+    const ext = (item.name.split('.').pop() || '').toUpperCase().slice(0, 4) || 'HTM';
+    card.innerHTML = `
+      <div class="welcome-card-icon">${escapeHtml(ext)}</div>
+      <div class="welcome-card-name">${escapeHtml(item.name)}</div>
+      <div class="welcome-card-path">${escapeHtml(item.path)}</div>
+      <div class="welcome-card-time">${escapeHtml(formatRelativeTime(item.lastActiveAt))}</div>
+      <button class="welcome-card-remove" type="button" aria-label="从最近记录中移除">×</button>
+    `;
+    card.addEventListener('click', e => {
+      if (e.target.classList.contains('welcome-card-remove')) {
+        e.stopPropagation();
+        removeRecent(item.path);
+        return;
+      }
+      openRecentFile(item.path);
+    });
+    grid.appendChild(card);
+  });
+}
+
+
 async function init() {
   await scriptsReady;
 
@@ -453,12 +589,19 @@ async function init() {
   });
 
   // 工具栏按钮
-  document.getElementById('newTabBtn').addEventListener('click', () => newTab());
+  document.getElementById('newTabBtn').addEventListener('click', () => newWelcomeTab());
   document.getElementById('openBtn').addEventListener('click', () => openFileDialog());
   document.getElementById('saveBtn').addEventListener('click', () => saveCurrent());
   document.getElementById('formatBtn').addEventListener('click', () => formatHTML());
   document.getElementById('copyHtmlBtn').addEventListener('click', () => copyHTML());
   document.getElementById('tabAddBtn').addEventListener('click', () => newTab());
+
+  // 欢迎页按钮
+  document.getElementById('welcomeNewBtn').addEventListener('click', () => newTab());
+  document.getElementById('welcomeOpenBtn').addEventListener('click', () => openFileDialog());
+  document.getElementById('welcomeEmptyNewBtn').addEventListener('click', () => newTab());
+  document.getElementById('welcomeEmptyOpenBtn').addEventListener('click', () => openFileDialog());
+  document.getElementById('welcomeClearBtn').addEventListener('click', () => clearRecent());
 
   // 导出菜单
   const exportBtn = document.getElementById('exportBtn');
@@ -496,15 +639,15 @@ async function init() {
   });
 
   // ============== IPC 监听 ==============
-  ipcRenderer.on('tab-new', () => newTab());
+  ipcRenderer.on('tab-new', () => newWelcomeTab());
   ipcRenderer.on('tab-close', () => state.activeTabId && closeTab(state.activeTabId));
   ipcRenderer.on('file-open-request', () => openFileDialog());
   ipcRenderer.on('file-save', () => saveCurrent());
   ipcRenderer.on('file-save-as', () => saveCurrentAs());
   ipcRenderer.on('file-opened', (_e, { path: p, content }) => {
     // 复用空 Untitled 或者新建 tab
-    const empty = state.tabs.find(t => !t.filePath && !t.dirty && t.content === DEFAULT_HTML);
-    if (empty && state.tabs.length === 1) {
+    const empty = state.tabs.find(t => t.type !== 'welcome' && !t.filePath && !t.dirty && t.content === DEFAULT_HTML);
+    if (empty && state.tabs.filter(t => t.type !== 'welcome').length === 1) {
       empty.filePath = p;
       empty.name = path.basename(p);
       empty.content = content;
@@ -513,11 +656,13 @@ async function init() {
       state.activeTabId = empty.id;
       if (state.editorInstance) state.editorInstance.setValue(content);
       renderTabs();
+      applyActiveTabView();
       updatePreview();
       updateStatusBar();
     } else {
       newTab({ filePath: p, content });
     }
+    refreshWelcomeIfMounted();
   });
   ipcRenderer.on('view-mode', (_e, m) => setViewMode(m));
   ipcRenderer.on('device-mode', (_e, m) => setDeviceMode(m));
@@ -548,11 +693,13 @@ async function init() {
     for (const f of files) {
       const content = await f.text();
       newTab({ filePath: f.path, content });
+      try { await ipcRenderer.invoke('recent-files-touch', { path: f.path, kind: 'open' }); } catch (_) {}
     }
+    refreshWelcomeIfMounted();
   });
 
-  // 初始 tab
-  newTab();
+  // 初始 tab:欢迎页
+  newWelcomeTab();
 
   // 设置初始 device 到 preview-pane(否则没 padding 切换会错位)
   document.querySelector('.preview-pane').dataset.device = state.deviceMode;

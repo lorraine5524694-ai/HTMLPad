@@ -6,6 +6,37 @@ const Store = require('electron-store');
 const APP_NAME = 'HTMLPad';
 const store = new Store();
 
+const RECENT_FILES_KEY = 'recentFiles';
+const RECENT_MAX = 50;
+const RECENT_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+
+function readRecent() {
+  const arr = store.get(RECENT_FILES_KEY, []);
+  return Array.isArray(arr) ? arr : [];
+}
+
+function writeRecent(arr) {
+  store.set(RECENT_FILES_KEY, arr.slice(0, RECENT_MAX));
+}
+
+function touchRecent(filePath, kind) {
+  if (!filePath) return;
+  const now = Date.now();
+  const list = readRecent();
+  const idx = list.findIndex(r => r.path === filePath);
+  const base = idx >= 0 ? list[idx] : {
+    path: filePath,
+    name: path.basename(filePath),
+    openedAt: 0,
+    modifiedAt: 0
+  };
+  if (kind === 'edit') base.modifiedAt = now;
+  else base.openedAt = now;
+  if (idx >= 0) list.splice(idx, 1);
+  list.unshift(base);
+  writeRecent(list);
+}
+
 app.setName(APP_NAME);
 
 let windows = [];
@@ -202,6 +233,7 @@ function createWindow(filePath = null) {
         const content = await fs.readFile(filePath, 'utf-8');
         win.webContents.send('file-opened', { path: filePath, content });
         store.set('lastOpenedFile', filePath);
+        touchRecent(filePath, 'open');
       } catch (e) {
         console.error('Failed to open file:', e);
       }
@@ -225,6 +257,7 @@ ipcMain.handle('save-file', async (_e, { filePath, content }) => {
   try {
     await fs.writeFile(filePath, content, 'utf-8');
     store.set('lastOpenedFile', filePath);
+    touchRecent(filePath, 'edit');
     return { success: true };
   } catch (e) {
     return { success: false, error: e.message };
@@ -244,6 +277,7 @@ ipcMain.handle('save-file-as', async (e, payload) => {
     try {
       await fs.writeFile(result.filePath, payload.content, 'utf-8');
       store.set('lastOpenedFile', result.filePath);
+      touchRecent(result.filePath, 'edit');
       return { success: true, filePath: result.filePath };
     } catch (err) {
       return { success: false, error: err.message };
@@ -266,11 +300,49 @@ ipcMain.handle('open-file-dialog', async (e) => {
     path: p,
     content: await fs.readFile(p, 'utf-8')
   })));
+  files.forEach(f => touchRecent(f.path, 'open'));
   return { success: true, files };
 });
 
 ipcMain.handle('get-last-file', () => store.get('lastOpenedFile'));
 ipcMain.handle('get-language', () => currentLanguage);
+
+ipcMain.handle('recent-files-list', async () => {
+  const cutoff = Date.now() - RECENT_WINDOW_MS;
+  const list = readRecent();
+  const checked = await Promise.all(list.map(async (r) => {
+    const ts = Math.max(r.openedAt || 0, r.modifiedAt || 0);
+    if (ts < cutoff) return null;
+    try {
+      await fs.access(r.path);
+      return { ...r, lastActiveAt: ts };
+    } catch (_) {
+      return null;
+    }
+  }));
+  const surviving = checked.filter(Boolean).sort((a, b) => b.lastActiveAt - a.lastActiveAt);
+  // 反向同步 store：把死链与超期的清掉，避免无限累积
+  if (surviving.length !== list.length) {
+    writeRecent(surviving.map(({ lastActiveAt, ...rest }) => rest));
+  }
+  return surviving;
+});
+
+ipcMain.handle('recent-files-touch', (_e, { path: p, kind }) => {
+  touchRecent(p, kind);
+  return { success: true };
+});
+
+ipcMain.handle('recent-files-remove', (_e, { path: p }) => {
+  const list = readRecent().filter(r => r.path !== p);
+  writeRecent(list);
+  return { success: true };
+});
+
+ipcMain.handle('recent-files-clear', () => {
+  writeRecent([]);
+  return { success: true };
+});
 
 ipcMain.handle('export-pdf', async (e, { defaultPath, html }) => {
   const win = BrowserWindow.fromWebContents(e.sender);
@@ -414,7 +486,10 @@ app.on('open-file', (e, filePath) => {
     const w = BrowserWindow.getFocusedWindow();
     if (w) {
       fs.readFile(filePath, 'utf-8')
-        .then(content => w.webContents.send('file-opened', { path: filePath, content }))
+        .then(content => {
+          w.webContents.send('file-opened', { path: filePath, content });
+          touchRecent(filePath, 'open');
+        })
         .catch(err => console.error(err));
     } else {
       createWindow(filePath);
