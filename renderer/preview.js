@@ -98,6 +98,13 @@ function injectBaseAndTheme(html, themeCSS, baseHref) {
     st.textContent =
       '[data-htmlpad-locked]{outline:2px solid #007AFF !important;outline-offset:2px !important;border-radius:2px;}'+
       '[data-htmlpad-editing]{outline:2px dashed #FF9F0A !important;outline-offset:2px !important;background:rgba(255,159,10,.06) !important;cursor:text !important;}'+
+      '[data-htmlpad-source-highlight]{outline:2px solid #FF9F0A !important;outline-offset:2px !important;}'+
+      '.htmlpad-format-toolbar{position:fixed;z-index:2147483647;display:flex;align-items:center;gap:6px;padding:6px;background:rgba(28,28,30,.94);border:1px solid rgba(255,255,255,.16);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.24);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}'+
+      '.htmlpad-format-toolbar[hidden]{display:none !important;}'+
+      '.htmlpad-format-toolbar button{width:26px;height:26px;border:0;border-radius:6px;background:rgba(255,255,255,.10);color:#fff;display:flex;align-items:center;justify-content:center;font:600 14px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;cursor:pointer;padding:0;}'+
+      '.htmlpad-format-toolbar button:hover{background:rgba(255,255,255,.22);}'+
+      '.htmlpad-format-toolbar .htmlpad-color-swatch{border:1px solid rgba(255,255,255,.55);}'+
+      '.htmlpad-format-toolbar input[type=color]{width:26px;height:26px;border:0;border-radius:6px;background:transparent;padding:0;overflow:hidden;cursor:pointer;}'+
       '[data-htmlpad-id]{cursor:pointer;}';
     (document.head || document.documentElement).appendChild(st);
   }
@@ -106,6 +113,8 @@ function injectBaseAndTheme(html, themeCSS, baseHref) {
   var clickTimer = null;
   var DBLCLICK_GUARD_MS = 240;
   var sourceSelectHighlight = null;
+  var formatToolbar = null;
+  var savedFormatRange = null;
 
   // 监听主窗口发来的"左侧编辑器选中了某 offset"
   window.addEventListener('message', function(e) {
@@ -118,16 +127,14 @@ function injectBaseAndTheme(html, themeCSS, baseHref) {
 
   function clearSourceSelect() {
     if (sourceSelectHighlight) {
-      sourceSelectHighlight.style.outline = '';
-      sourceSelectHighlight.style.outlineOffset = '';
+      sourceSelectHighlight.removeAttribute('data-htmlpad-source-highlight');
       sourceSelectHighlight = null;
     }
   }
 
   function applySourceSelect(offset) {
     if (sourceSelectHighlight) {
-      sourceSelectHighlight.style.outline = '';
-      sourceSelectHighlight.style.outlineOffset = '';
+      sourceSelectHighlight.removeAttribute('data-htmlpad-source-highlight');
       sourceSelectHighlight = null;
     }
     if (!document.body) return;
@@ -147,8 +154,7 @@ function injectBaseAndTheme(html, themeCSS, baseHref) {
       return;
     }
     sourceSelectHighlight = found;
-    found.style.outline = '2px solid #FF9F0A';
-    found.style.outlineOffset = '2px';
+    found.setAttribute('data-htmlpad-source-highlight', '1');
     try { found.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch(_) {}
   }
 
@@ -179,9 +185,193 @@ function injectBaseAndTheme(html, themeCSS, baseHref) {
     return true;
   }
 
+  function ensureFormatToolbar() {
+    if (formatToolbar) return formatToolbar;
+    formatToolbar = document.createElement('div');
+    formatToolbar.className = 'htmlpad-format-toolbar';
+    formatToolbar.hidden = true;
+    formatToolbar.innerHTML =
+      '<button type="button" data-format="bold" title="加粗" aria-label="加粗">B</button>'+
+      '<button type="button" class="htmlpad-color-swatch" data-color="#FF3B30" title="红色" aria-label="红色" style="background:#FF3B30"></button>'+
+      '<button type="button" class="htmlpad-color-swatch" data-color="#007AFF" title="蓝色" aria-label="蓝色" style="background:#007AFF"></button>'+
+      '<button type="button" class="htmlpad-color-swatch" data-color="#34C759" title="绿色" aria-label="绿色" style="background:#34C759"></button>'+
+      '<button type="button" class="htmlpad-color-swatch" data-color="#1D1D1F" title="黑色" aria-label="黑色" style="background:#1D1D1F"></button>'+
+      '<input type="color" value="#007AFF" title="自定义颜色" aria-label="自定义颜色">';
+    formatToolbar.addEventListener('mousedown', function(ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+    }, true);
+    formatToolbar.addEventListener('click', function(ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      var btn = ev.target.closest && ev.target.closest('button');
+      if (!btn) return;
+      if (btn.getAttribute('data-format') === 'bold') applySelectionFormat('bold');
+      var color = btn.getAttribute('data-color');
+      if (color) applySelectionFormat('color', color);
+    }, true);
+    var colorInput = formatToolbar.querySelector('input[type=color]');
+    if (colorInput) {
+      colorInput.addEventListener('change', function(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        applySelectionFormat('color', colorInput.value);
+      }, true);
+    }
+    (document.body || document.documentElement).appendChild(formatToolbar);
+    return formatToolbar;
+  }
+
+  function getElementFromNode(node) {
+    if (!node) return null;
+    return node.nodeType === 1 ? node : node.parentElement;
+  }
+
+  function closestMapped(el) {
+    while (el && el !== document.documentElement) {
+      if (el.getAttribute && el.getAttribute('data-htmlpad-id')) return el;
+      el = el.parentElement;
+    }
+    return null;
+  }
+
+  function closestAttr(el, attr) {
+    while (el && el !== document.documentElement) {
+      if (el.hasAttribute && el.hasAttribute(attr)) return el;
+      el = el.parentElement;
+    }
+    return null;
+  }
+
+  function getSelectionRoot(range) {
+    var startRoot = closestMapped(getElementFromNode(range.startContainer));
+    var endRoot = closestMapped(getElementFromNode(range.endContainer));
+    if (!startRoot || !endRoot) return null;
+    var root = startRoot;
+    while (root && root !== document.documentElement) {
+      if (root.contains(endRoot)) return root;
+      root = closestMapped(root.parentElement);
+    }
+    return null;
+  }
+
+  function getUsableSelectionRange() {
+    var sel = window.getSelection && window.getSelection();
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return null;
+    if (!String(sel.toString()).trim()) return null;
+    var range = sel.getRangeAt(0);
+    if (
+      closestAttr(getElementFromNode(range.startContainer), 'data-htmlpad-editing') ||
+      closestAttr(getElementFromNode(range.endContainer), 'data-htmlpad-editing')
+    ) return null;
+    if (!getSelectionRoot(range)) return null;
+    return range;
+  }
+
+  function hasTextSelection() {
+    return !!getUsableSelectionRange();
+  }
+
+  function hideFormatToolbar() {
+    if (formatToolbar) formatToolbar.hidden = true;
+  }
+
+  function showFormatToolbar(range) {
+    var toolbar = ensureFormatToolbar();
+    savedFormatRange = range.cloneRange();
+    toolbar.hidden = false;
+    var rect = range.getBoundingClientRect();
+    var width = toolbar.offsetWidth || 210;
+    var top = Math.max(8, rect.top - toolbar.offsetHeight - 10);
+    var left = Math.max(8, Math.min(window.innerWidth - width - 8, rect.left + rect.width / 2 - width / 2));
+    toolbar.style.top = top + 'px';
+    toolbar.style.left = left + 'px';
+  }
+
+  function updateFormatToolbar() {
+    if (formatToolbar && formatToolbar.contains(document.activeElement)) return;
+    var range = getUsableSelectionRange();
+    if (!range) {
+      savedFormatRange = null;
+      hideFormatToolbar();
+      return;
+    }
+    showFormatToolbar(range);
+  }
+
+  function cleanPreviewAttrs(root) {
+    if (!root || !root.querySelectorAll) return;
+    var nodes = [root].concat(Array.prototype.slice.call(root.querySelectorAll('*')));
+    nodes.forEach(function(node) {
+      node.removeAttribute('data-htmlpad-id');
+      node.removeAttribute('data-htmlpad-locked');
+      node.removeAttribute('data-htmlpad-editing');
+      node.removeAttribute('data-htmlpad-source-highlight');
+      node.removeAttribute('contenteditable');
+    });
+  }
+
+  function postRichEdit(root) {
+    if (!root) return;
+    var offset = parseInt(root.getAttribute('data-htmlpad-id'), 10);
+    if (isNaN(offset)) return;
+    var clone = root.cloneNode(true);
+    cleanPreviewAttrs(clone);
+    try {
+      window.parent.postMessage({
+        type: 'htmlpad-rich-edit',
+        offset: offset,
+        newInnerHTML: clone.innerHTML
+      }, '*');
+    } catch(_){}
+  }
+
+  function restoreSavedSelection() {
+    if (!savedFormatRange) return null;
+    try {
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(savedFormatRange);
+      return savedFormatRange.cloneRange();
+    } catch(_) {
+      return null;
+    }
+  }
+
+  function applySelectionFormat(kind, value) {
+    var range = restoreSavedSelection() || getUsableSelectionRange();
+    if (!range || range.collapsed) return;
+    var root = getSelectionRoot(range);
+    if (!root) return;
+    var wrapper = document.createElement(kind === 'bold' ? 'strong' : 'span');
+    if (kind === 'color') wrapper.style.color = value || '#007AFF';
+    try {
+      var fragment = range.extractContents();
+      wrapper.appendChild(fragment);
+      range.insertNode(wrapper);
+      wrapper.normalize();
+      var sel = window.getSelection();
+      var nextRange = document.createRange();
+      nextRange.selectNodeContents(wrapper);
+      sel.removeAllRanges();
+      sel.addRange(nextRange);
+      savedFormatRange = nextRange.cloneRange();
+      postRichEdit(root);
+      showFormatToolbar(nextRange);
+    } catch(err) {
+      try { window.parent.postMessage({ type: 'htmlpad-debug', msg: 'format failed: ' + err.message }, '*'); } catch(_){}
+    }
+  }
+
+  document.addEventListener('selectionchange', function() {
+    setTimeout(updateFormatToolbar, 0);
+  });
+
   document.addEventListener('click', function(e) {
+    if (formatToolbar && formatToolbar.contains(e.target)) return;
     var t = findTarget(e);
     if (t && t.el.getAttribute('data-htmlpad-editing')) return;
+    if (hasTextSelection()) return;
     e.preventDefault();
     e.stopPropagation();
     if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; }

@@ -332,13 +332,44 @@ function applyTextEdit(offset, newText) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
   const newHtml = html.slice(0, range.start) + escaped + html.slice(range.end);
+  setCurrentDocumentContent(newHtml);
+  toast('已更新文字');
+}
+
+function applyRichEdit(offset, newInnerHTML) {
+  const tab = state.activeTab;
+  if (!tab) return;
+  const html = tab.content;
+  const range = findInnerTextRange(html, offset);
+  if (!range) { toast('该选区无法直接设置样式'); return; }
+  const cleaned = sanitizePreviewHTMLFragment(newInnerHTML);
+  const newHtml = html.slice(0, range.start) + cleaned + html.slice(range.end);
+  setCurrentDocumentContent(newHtml);
+  toast('已更新样式');
+}
+
+function setCurrentDocumentContent(newHtml) {
   if (state.editorInstance) {
     state.editorInstance.setValue(newHtml);
+    if (typeof state.editorInstance.getModel !== 'function') {
+      onEditorChange(newHtml);
+    }
   } else {
-    tab.content = newHtml;
     onEditorChange(newHtml);
   }
-  toast('已更新文字');
+}
+
+function sanitizePreviewHTMLFragment(html) {
+  const tpl = document.createElement('template');
+  tpl.innerHTML = String(html || '');
+  tpl.content.querySelectorAll('*').forEach(el => {
+    el.removeAttribute('data-htmlpad-id');
+    el.removeAttribute('data-htmlpad-locked');
+    el.removeAttribute('data-htmlpad-editing');
+    el.removeAttribute('data-htmlpad-source-highlight');
+    el.removeAttribute('contenteditable');
+  });
+  return tpl.innerHTML;
 }
 
 function findInnerTextRange(html, offset) {
@@ -539,6 +570,8 @@ async function init() {
       state.editorInstance.focus();
     } else if (e.data.type === 'htmlpad-text-edit') {
       applyTextEdit(e.data.offset, e.data.newText);
+    } else if (e.data.type === 'htmlpad-rich-edit') {
+      applyRichEdit(e.data.offset, e.data.newInnerHTML);
     } else if (e.data.type === 'htmlpad-edit-begin') {
       // 让 Monaco 失焦,把焦点让给 iframe 的 contenteditable
       try {
@@ -569,9 +602,8 @@ async function init() {
 
     // 左侧编辑器选区变化 → 右侧预览高亮对应元素
     let selectTimer = null;
-    const editorListeners = [];
     if (state.editorInstance.onDidChangeCursorSelection) {
-      editorListeners.push(state.editorInstance.onDidChangeCursorSelection((e) => {
+      state.editorInstance.onDidChangeCursorSelection(() => {
         clearTimeout(selectTimer);
         const model = state.editorInstance.getModel();
         if (!model) return;
@@ -596,15 +628,14 @@ async function init() {
             } catch (_) {}
           }, 60);
         }
-      }));
+      });
     } else {
       // textarea 降级模式:监听 select 事件
       const ta = editorHost.querySelector('textarea');
       if (ta) {
         ta.addEventListener('select', () => {
-          clearTimeout(selectHighlightTimer);
-          selectHighlightTimer = setTimeout(() => {
-            const val = ta.value;
+          clearTimeout(selectTimer);
+          selectTimer = setTimeout(() => {
             const start = ta.selectionStart;
             try {
               document.getElementById('previewFrame')?.contentWindow?.postMessage(
